@@ -5,9 +5,10 @@ Function:
 ---------------------------------------------------------------------------
 */
 
-LoadSettings( _File="Settings.ini" ) {
+LoadSettings( _File = "Settings.ini" ) {
 	local Var, Val
-	Loop, Read, %_File% {
+	Loop, Read, %_File%
+	{
 		if ( ( InStr(A_LoopReadLine, "[") = 0 ) AND StrLen( A_LoopReadLine ) > 2 ) {
 			local Ans := InStr( A_LoopReadLine, "=" )
 			StringLeft, Var, A_LoopReadLine, Ans - 1
