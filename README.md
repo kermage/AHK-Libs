@@ -7,3 +7,4 @@
 - MD5Hash
 - RunAsAdmin
 - TEA (Tiny Encryption Algorithm)
+- TimedFunction
