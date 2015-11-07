@@ -10,3 +10,4 @@
 - RunAsAdmin
 - TEA (Tiny Encryption Algorithm)
 - TimedFunction
+- ToolTipUI
