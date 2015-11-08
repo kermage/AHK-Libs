@@ -8,6 +8,7 @@
 - LoadSettings
 - MD5Hash
 - RunAsAdmin
+- StringM
 - TEA (Tiny Encryption Algorithm)
 - TimedFunction
 - ToolTipUI
