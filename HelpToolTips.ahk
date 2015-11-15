@@ -6,18 +6,17 @@ Function:
 */
 
 HelpToolTips( _Delay = 300, _Duration = 0 ) {
-	global HelpToolTips_Delay, HelpToolTips_Duration
-	HelpToolTips_Delay := _Delay
-	HelpToolTips_Duration := _Duration
-	OnMessage( 0x200, "WM_MOUSEMOVE" )
+	_fn := Func( "WM_MOUSEMOVE" ).Bind( _Delay, _Duration )
+	OnMessage( 0x200, _fn )
 }
 
-WM_MOUSEMOVE() {
-	global HelpToolTips_Delay, HelpToolTips_Duration
+WM_MOUSEMOVE( _Delay = 300, _Duration = 0 ) {
 	static CurrControl, PrevControl, _TT
 	CurrControl := A_GuiControl
 	if ( CurrControl != PrevControl ) {
-		SetTimer, DisplayToolTip, %HelpToolTips_Delay%
+		SetTimer, DisplayToolTip, % _Delay
+		if ( _Duration )
+			SetTimer, RemoveToolTip, % _Delay + _Duration
 		PrevControl := CurrControl
 	}
 	return
@@ -28,8 +27,6 @@ WM_MOUSEMOVE() {
 			ToolTip % %CurrControl%_TT
 		catch
 			ToolTip
-		if ( HelpToolTips_Duration )
-			SetTimer, RemoveToolTip, %HelpToolTips_Duration%
 	return
 
 	RemoveToolTip:
