@@ -13,6 +13,7 @@ LoadSettings( _File = "Settings.ini" ) {
             local Ans := InStr( A_LoopReadLine, "=" )
             StringLeft, Var, A_LoopReadLine, Ans - 1
             StringRight, Val, A_LoopReadLine, StrLen( A_LoopReadLine ) - Ans
+            Var := RegExReplace( Var, "\W", "_" )
             %Var% := Val
         }
     }
