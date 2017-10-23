@@ -6,13 +6,20 @@ Function:
 */
 
 LoadSettings( _File = "Settings.ini" ) {
-    local Var, Val
-    Loop, Read, %_File%
+    local Var, Val, Secs, Cont
+
+    IniRead, Secs, % _File
+
+    Loop, Parse, Secs, `n
     {
-        if ( ( InStr(A_LoopReadLine, "[") = 0 ) AND StrLen( A_LoopReadLine ) > 2 ) {
-            local Ans := InStr( A_LoopReadLine, "=" )
-            StringLeft, Var, A_LoopReadLine, Ans - 1
-            StringRight, Val, A_LoopReadLine, StrLen( A_LoopReadLine ) - Ans
+        local Name := A_LoopField
+        IniRead, Cont, % _File, % Name
+
+        Loop, Parse, Cont, `n
+        {
+            local Ans := InStr( A_LoopField, "=" )
+            StringLeft, Var, A_LoopField, Ans - 1
+            StringRight, Val, A_LoopField, StrLen( A_LoopField ) - Ans
             Var := RegExReplace( Var, "\W", "_" )
             %Var% := Val
         }
