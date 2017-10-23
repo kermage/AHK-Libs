@@ -6,22 +6,22 @@ Function:
 */
 
 LoadSettings( _File = "Settings.ini" ) {
-    local Var, Val, Secs, Cont
+    local SectionNames, SectionContent, KeyLine, Variable, Value
 
-    IniRead, Secs, % _File
+    IniRead, SectionNames, % _File
 
-    Loop, Parse, Secs, `n
+    Loop, Parse, SectionNames, `n
     {
-        local Name := A_LoopField
-        IniRead, Cont, % _File, % Name
+        SectionName := A_LoopField
+        IniRead, SectionContent, % _File, % SectionName
 
-        Loop, Parse, Cont, `n
+        Loop, Parse, SectionContent, `n
         {
-            local Ans := InStr( A_LoopField, "=" )
-            StringLeft, Var, A_LoopField, Ans - 1
-            StringRight, Val, A_LoopField, StrLen( A_LoopField ) - Ans
-            Var := RegExReplace( Var, "\W", "_" )
-            %Var% := Val
+            KeyLine := InStr( A_LoopField, "=" )
+            StringLeft, Variable, A_LoopField, KeyLine - 1
+            StringRight, Value, A_LoopField, StrLen( A_LoopField ) - KeyLine
+            Variable := RegExReplace( Variable, "\W", "_" )
+            %Variable% := Value
         }
     }
 }
