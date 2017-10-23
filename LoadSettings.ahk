@@ -5,7 +5,7 @@ Function:
 ---------------------------------------------------------------------------
 */
 
-LoadSettings( _File = "Settings.ini" ) {
+LoadSettings( _File = "Settings.ini", _Prefix = "" ) {
     local SectionNames, SectionContent, KeyLine, Variable, Value
 
     IniRead, SectionNames, % _File
@@ -21,6 +21,7 @@ LoadSettings( _File = "Settings.ini" ) {
             StringLeft, Variable, A_LoopField, KeyLine - 1
             StringRight, Value, A_LoopField, StrLen( A_LoopField ) - KeyLine
             Variable := RegExReplace( Variable, "\W", "_" )
+            Variable := ( _Prefix ? _Prefix . "_" : "" ) . Variable
             %Variable% := Value
         }
     }
