@@ -5,10 +5,14 @@ Function:
 ---------------------------------------------------------------------------
 */
 
-LoadSettings( _File = "Settings.ini", _Prefix = "" ) {
+LoadSettings( _File = "Settings.ini", _Prefix = "", _Section = "" ) {
     local SectionNames, SectionName, SectionContent, KeyLine, Variable, Value, Prefixes
 
-    IniRead, SectionNames, % _File
+    if ( _Section ) {
+        SectionNames := _Section
+    } else {
+        IniRead, SectionNames, % _File
+    }
 
     Loop, Parse, SectionNames, `n
     {
