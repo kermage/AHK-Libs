@@ -6,8 +6,6 @@ Function:
 */
 
 LoadSettings( _File = "Settings.ini", _Prefix = "", _Section = "" ) {
-    local SectionNames, SectionName, SectionContent, KeyLine, Variable, Value, Prefixes
-
     if ( _Section ) {
         SectionNames := _Section
     } else {
