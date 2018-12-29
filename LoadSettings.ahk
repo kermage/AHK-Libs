@@ -14,6 +14,10 @@ LoadSettings( _File = "Settings.ini", _Section = "" ) {
         IniRead, SectionNames, % _File
     }
 
+    if ( StrSplit( SectionNames, "`n" ).MaxIndex() == 1 ) {
+        _Section := SectionNames
+    }
+
     Loop, Parse, SectionNames, `n
     {
         SectionName := A_LoopField
