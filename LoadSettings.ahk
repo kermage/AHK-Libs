@@ -5,7 +5,9 @@ Function:
 ---------------------------------------------------------------------------
 */
 
-LoadSettings( _File = "Settings.ini", _Prefix = "", _Section = "" ) {
+LoadSettings( _File = "Settings.ini", _Section = "" ) {
+    Settings := []
+
     if ( _Section ) {
         SectionNames := _Section
     } else {
@@ -23,8 +25,9 @@ LoadSettings( _File = "Settings.ini", _Prefix = "", _Section = "" ) {
             StringLeft, Variable, A_LoopField, KeyLine - 1
             StringRight, Value, A_LoopField, StrLen( A_LoopField ) - KeyLine
             Variable := RegExReplace( Variable, "\W", "_" )
-            Prefixes := ( _Prefix ? _Prefix . "_" : "" ) . SectionName
-            %Prefixes%_%Variable% := Value
+            Settings[ Variable ] := Value
         }
     }
+
+    return Settings
 }
