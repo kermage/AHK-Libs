@@ -22,10 +22,10 @@ ParseArguments() {
 
         if ( SubStr( key, 1, 1 ) == "-" ) {
             key := SubStr( key, 2 )
+        }
 
-            if ( SubStr( value, 1, 1 ) == "-" ) {
-                value := true
-            }
+        if ( ! value || SubStr( value, 1, 1 ) == "-" ) {
+            value := true
         }
 
         argv[ key ] := value
