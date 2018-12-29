@@ -19,6 +19,12 @@ ParseArguments() {
         index := A_Index
         key := SubStr( argument, 2 )
         value := A_Args[ ++index ]
+
+        if ( SubStr( key, 1, 1 ) == "-" ) {
+            key := SubStr( key, 2 )
+            value := true
+        }
+
         argv[ key ] := value
     }
 
