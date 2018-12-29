@@ -6,7 +6,7 @@ Function:
 */
 
 ParseArguments() {
-    global argv := []
+    argv := []
 
     Loop % A_Args.Length()
     {
@@ -21,4 +21,6 @@ ParseArguments() {
         value := A_Args[ ++index ]
         argv[ key ] := value
     }
+
+    return argv
 }
