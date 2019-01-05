@@ -6,11 +6,11 @@ Function:
 */
 
 HelpToolTips( _Delay = 300, _Duration = 0 ) {
-    _fn := Func( "WM_MOUSEMOVE" ).Bind( _Delay, _Duration )
+    _fn := Func( "HelpToolTips_WM_MOUSEMOVE" ).Bind( _Delay, _Duration )
     OnMessage( 0x200, _fn )
 }
 
-WM_MOUSEMOVE( _Delay = 300, _Duration = 0 ) {
+HelpToolTips_WM_MOUSEMOVE( _Delay = 300, _Duration = 0 ) {
     static CurrControl, PrevControl, _TT
     CurrControl := A_GuiControl
     if ( CurrControl != PrevControl ) {
