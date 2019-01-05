@@ -11,7 +11,7 @@ HelpToolTips( _Delay = 300, _Duration = 0 ) {
 }
 
 HelpToolTips_WM_MOUSEMOVE( _Delay = 300, _Duration = 0 ) {
-    static CurrControl, PrevControl, _TT
+    static CurrControl, PrevControl
     CurrControl := A_GuiControl
     if ( CurrControl != PrevControl ) {
         SetTimer, DisplayToolTip, % _Delay
