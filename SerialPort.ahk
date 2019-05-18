@@ -19,11 +19,8 @@ class SerialPort {
         BCD_Result := DllCall( "BuildCommDCB"
             , "str" , _Settings ; lpDef
             , "UInt", &DCB )    ; lpDCB
-        if ( BCD_Result <> 1 ) {
-            error := DllCall( "GetLastError" )
-            MsgBox, There is a problem with Serial Port communication. `nFailed Dll BuildCommDCB, BCD_Result=%BCD_Result% `nLasterror=%error%`nThe Script Will Now Exit.
-            ExitApp
-        }
+        if ( BCD_Result <> 1 )
+            this._Error( "Failed Dll BuildCommDCB`nBCD_Result=" BCD_Result )
 
         ; ###### Extract/Format the COM Port Number ######
         StringSplit, SERIAL_Port_Temp, _Settings, `:
@@ -44,23 +41,16 @@ class SerialPort {
             , "UInt", 0           ; Flags And Attributes
             , "UInt", 0           ; Template File
             , "Cdecl Int" )
-        if ( this.FileHandle < 1 ) {
-            error := DllCall( "GetLastError" )
-            MsgBox, % "There is a problem with Serial Port communication. `nFailed Dll CreateFile, Serial_FileHandle=" this.FileHandle "`nLasterror=" error "`nThe Script Will Now Exit."
-            ExitApp
-        }
+        if ( this.FileHandle < 1 )
+            this._Error( "Failed Dll CreateFile`nSerial_FileHandle=" this.FileHandle )
 
         ; ###### Set COM State ######
         ; Sets the COM Port number, baud rate,...
         SCS_Result := DllCall( "SetCommState"
             , "UInt", this.FileHandle ; File Handle
             , "UInt", &DCB )          ; Pointer to DCB structure
-        if ( SCS_Result <> 1 ) {
-            error := DllCall( "GetLastError" )
-            MsgBox, There is a problem with Serial Port communication. `nFailed Dll SetCommState, SCS_Result=%SCS_Result% `nLasterror=%error%`nThe Script Will Now Exit.
-            this.Close()
-            ExitApp
-        }
+        if ( SCS_Result <> 1 )
+            this._Error( "Failed Dll SetCommState`nSCS_Result=" SCS_Result, true )
 
         ; ###### Create the SetCommTimeouts Structure ######
         ReadIntervalTimeout        = 0xffffffff
@@ -77,23 +67,18 @@ class SerialPort {
         NumPut( WriteTotalTimeoutConstant,   Data, 16, "UInt" )
 
         ;###### Set the COM Timeouts ######
-        SCT_result := DllCall( "SetCommTimeouts"
+        SCT_Result := DllCall( "SetCommTimeouts"
             , "UInt", this.FileHandle ; File Handle
             , "UInt", &Data )         ; Pointer to the data structure
-        if ( SCT_result <> 1 ) {
-            error := DllCall( "GetLastError" )
-            MsgBox, There is a problem with Serial Port communication. `nFailed Dll SetCommState, SCT_result=%SCT_result% `nLasterror=%error%`nThe Script Will Now Exit.
-            this.Close()
-            ExitApp
-        }
+        if ( SCT_Result <> 1 )
+            this._Error( "Failed Dll SetCommTimeouts`nSCT_Result=" SCT_Result, true )
     }
 
     Close() {
         ; ###### Close the COM File ######
-        CH_result := DllCall( "CloseHandle", "UInt", this.FileHandle )
-        if ( CH_result <> 1 )
-            MsgBox, Failed Dll CloseHandle CH_result=%CH_result%
-        return
+        CH_Result := DllCall( "CloseHandle", "UInt", this.FileHandle )
+        if ( CH_Result <> 1 )
+            this._Error( "Failed Dll CloseHandle`nCH_Result=" CH_Result, false, false )
     }
 
     Write( _Message ) {
@@ -124,7 +109,7 @@ class SerialPort {
             , "UInt*", Bytes_Sent      ; Returns pointer to num bytes sent
             , "Int"  , "NULL" )
         if ( WF_Result <> 1 or Bytes_Sent <> Data_Length )
-            MsgBox, Failed Dll WriteFile to COM Port, result=%WF_Result% `nData Length=%Data_Length% `nBytes_Sent=%Bytes_Sent%
+            this._Error( "Failed Dll WriteFile`nWF_Result=" WF_Result, false, false )
 
         return Bytes_Sent
     }
@@ -140,17 +125,14 @@ class SerialPort {
 
         ; ###### Read the data from the COM Port ######
         ; MsgBox, this.FileHandle=%this.FileHandle% `nNum_Bytes=%_Num_Bytes%
-        Read_Result := DllCall( "ReadFile"
+        RF_Result := DllCall( "ReadFile"
             , "UInt" , this.FileHandle ; hFile
             , "Str"  , Data            ; lpBuffer
             , "Int"  , _Num_Bytes       ; nNumberOfBytesToRead
             , "UInt*", Bytes_Received  ; lpNumberOfBytesReceived
             , "Int"  , 0 )             ; lpOverlapped
-        ; MsgBox, Read_Result=%Read_Result% `nBR=%Bytes_Received% ,`nData=%Data%
-        if ( Read_Result <> 1 ) {
-            MsgBox, There is a problem with Serial Port communication. `nFailed Dll ReadFile on COM Port, result=%Read_Result% - The Script Will Now Exit.
-            this.Close()
-            Exit
+        if ( RF_Result <> 1 ) {
+            this._Error( "Failed Dll ReadFile`nRF_Result=" RF_Result, false, false )
         }
 
         ; if you know the data coming back will not contain any binary zeros (0x00), you can request the 'raw' response
@@ -222,5 +204,22 @@ class SerialPort {
         StringReplace, ASCII, ASCII, #Space#, % A_Space, A
 
         return ASCII
+    }
+
+    _Error( _Message, _Close = false, _Exit = true ) {
+        Final_Message :="There is a problem with Serial Port communication.`n`n" _Message "`n`n"
+
+        if _Close
+            this.Close()
+
+        if _Exit
+            Final_Message .= "This script will now exit. "
+
+        Final_Message .= "Error: " DllCall( "GetLastError" )
+
+        MsgBox % Final_Message
+
+        if _Exit
+            ExitApp
     }
 }
