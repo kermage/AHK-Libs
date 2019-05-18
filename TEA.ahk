@@ -6,7 +6,7 @@ Function:
 */
 
 TEA_Encrypt( _String, _Password ) {
-    TEA_PWD2Key( _Password, k1, k2, k3, k4, k5 )
+    TEA__PWD2Key( _Password, k1, k2, k3, k4, k5 )
     i = 9
     p = 0
     OutString =
@@ -21,8 +21,8 @@ TEA_Encrypt( _String, _Password ) {
                 u := p
                 v := k5
                 p++
-                TEA_TEA( u, v, k1, k2, k3, k4 )
-                TEA_Stream9( u, v )
+                TEA__TEA( u, v, k1, k2, k3, k4 )
+                TEA__Stream9( u, v )
                 i = 0
             }
             StringMid, c, ThisLine, A_Index, 1
@@ -42,7 +42,7 @@ TEA_Encrypt( _String, _Password ) {
 }
 
 TEA_Decrypt( _String, _Password ) {
-    TEA_PWD2Key( _Password, k1, k2, k3, k4, k5 )
+    TEA__PWD2Key( _Password, k1, k2, k3, k4, k5 )
     i = 9
     p = 0
     OutString =
@@ -57,8 +57,8 @@ TEA_Decrypt( _String, _Password ) {
                 u := p
                 v := k5
                 p++
-                TEA_TEA( u, v, k1, k2, k3, k4 )
-                TEA_Stream9( u, v )
+                TEA__TEA( u, v, k1, k2, k3, k4 )
+                TEA__Stream9( u, v )
                 i = 0
             }
             StringMid, c, ThisLine, A_Index, 1
@@ -77,13 +77,13 @@ TEA_Decrypt( _String, _Password ) {
     return OutString
 }
 
-TEA_PWD2Key( PW, ByRef k1, ByRef k2, ByRef k3, ByRef k4, ByRef k5 ) {
-    TEA_CBC( k1, k2, PW, 1, 2, 3, 4 )
-    TEA_CBC( k3, k4, PW, 4, 3, 2, 1 )
+TEA__PWD2Key( PW, ByRef k1, ByRef k2, ByRef k3, ByRef k4, ByRef k5 ) {
+    TEA__CBC( k1, k2, PW, 1, 2, 3, 4 )
+    TEA__CBC( k3, k4, PW, 4, 3, 2, 1 )
     k5 := k1 ^ k2 ^ k3 ^ k4
 }
 
-TEA_CBC( ByRef u, ByRef v, x, k0, k1, k2, k3 ) {
+TEA__CBC( ByRef u, ByRef v, x, k0, k1, k2, k3 ) {
     u = 0
     v = 0
     Loop, % Ceil( StrLen(x) / 8 )
@@ -98,12 +98,12 @@ TEA_CBC( ByRef u, ByRef v, x, k0, k1, k2, k3 ) {
         Loop, Parse, c
             p := ( p << 8 ) + Asc( A_LoopField )
         v := v ^ p
-        TEA_TEA( u, v, k0, k1, k2, k3 )
+        TEA__TEA( u, v, k0, k1, k2, k3 )
         StringTrimLeft, x, x, 8
     }
 }
 
-TEA_TEA( ByRef y, ByRef z, k0, k1, k2, k3 ) {
+TEA__TEA( ByRef y, ByRef z, k0, k1, k2, k3 ) {
     IntFormat := A_FormatInteger
     SetFormat Integer, D
     s = 0
@@ -121,7 +121,7 @@ TEA_TEA( ByRef y, ByRef z, k0, k1, k2, k3 ) {
     z += 0
 }
 
-TEA_Stream9( x, y ) {
+TEA__Stream9( x, y ) {
     Local z
     s0 := Floor( x * 0.000000022118911147 )
     Loop, 8
