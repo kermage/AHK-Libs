@@ -82,8 +82,6 @@ class SerialPort {
     }
 
     Write( _Message ) {
-        SetFormat, Integer, DEC
-
         ; Parse the Message. Byte0 is the number of bytes in the array.
         StringSplit, Byte, _Message, `,
         Data_Length := Byte0
@@ -93,12 +91,8 @@ class SerialPort {
         VarSetCapacity( Data, Byte0, 0xFF )
 
         ; Write the Message into the Data buffer
-        i=1
-        Loop %Byte0% {
-            NumPut( Byte%i%, Data, (i-1) , "UChar" )
-            ; MsgBox, %i%
-            i++
-        }
+        Loop % Byte0
+            NumPut( Byte%A_Index%, Data, A_Index - 1, "UChar" )
         ; MsgBox, Data string=%Data%
 
         ; ###### Write the data to the COM Port ######
@@ -115,12 +109,10 @@ class SerialPort {
     }
 
     Read( _Num_Bytes, _Mode = "" ) {
-        SetFormat, Integer, HEX
-
         ; Set the Data buffer size, prefill with 0x55 = ASCII character "U"
         ; VarSetCapacity won't assign anything less than 3 bytes.
         ; Meaning: If you tell it you want 1 or 2 byte size variable it will give you 3.
-        Data_Length := VarSetCapacity( Data, _Num_Bytes, 0 )
+        VarSetCapacity( Data, _Num_Bytes, 0 )
         ; MsgBox, Data_Length=%Data_Length%
 
         ; ###### Read the data from the COM Port ######
@@ -146,27 +138,18 @@ class SerialPort {
         ;      of the zero; that is, such data cannot be accessed or changed by most commands and
         ;      functions. However, such data can be manipulated by the address and dereference operators
         ;      (& and *), as well as DllCall itself."
-        i = 0
-        Data_HEX =
-        Loop %Bytes_Received% 
-        {
+        Loop %Bytes_Received% {
             ; First byte into the Rx FIFO ends up at position 0
-
-            Data_HEX_Temp := NumGet( Data, i, "UChar" )     ; Convert to HEX byte-by-byte
-            StringTrimLeft, Data_HEX_Temp, Data_HEX_Temp, 2 ; Remove the 0x (added by the above line) from the front
+            Data_HEX_Temp := Format( "{:x}", NumGet( Data, A_Index - 1, "UChar" ) ) ; Convert to HEX byte-by-byte
 
             ; If there is only 1 character then add the leading "0'
             if ( StrLen( Data_HEX_Temp ) == 1 )
                 Data_HEX_Temp = 0%Data_HEX_Temp%
 
-            i++
-
             ; Put it all together
             Data_HEX .= Data_HEX_Temp
         }
         ; MsgBox, Read_Result=%Read_Result% `nBR=%Bytes_Received% ,`nData_HEX=%Data_HEX%
-
-        SetFormat, Integer, DEC
 
         return Data_HEX
     }
