@@ -5,7 +5,7 @@ Function:
 ---------------------------------------------------------------------------
 */
 
-LoadSettings( _File = "Settings.ini", _Section = "" ) {
+LoadSettings( _File = "Settings.ini", _Section = "", _Multi = false ) {
     Settings := []
 
     if ( _Section ) {
@@ -21,7 +21,12 @@ LoadSettings( _File = "Settings.ini", _Section = "" ) {
     Loop, Parse, SectionNames, `n
     {
         SectionName := A_LoopField
-        Prefix := ( _Section ? "" : SectionName . "_" )
+
+        if _Multi
+            Settings[ SectionName ] := []
+        else
+            Prefix := ( _Section ? "" : SectionName . "_" )
+
         IniRead, SectionContent, % _File, % SectionName
 
         Loop, Parse, SectionContent, `n
@@ -30,7 +35,11 @@ LoadSettings( _File = "Settings.ini", _Section = "" ) {
             StringLeft, Variable, A_LoopField, KeyLine - 1
             StringRight, Value, A_LoopField, StrLen( A_LoopField ) - KeyLine
             Variable := RegExReplace( Variable, "\W", "_" )
-            Settings[ Prefix . Variable ] := Value
+
+            if _Multi
+                Settings[ SectionName ][ Variable ] := Value
+            else
+                Settings[ Prefix . Variable ] := Value
         }
     }
 
