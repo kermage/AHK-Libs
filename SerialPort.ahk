@@ -27,10 +27,9 @@ class SerialPort {
 
         ; ###### Extract/Format the COM Port Number ######
         StringSplit, SERIAL_Port_Temp, _Settings, `:
-        SERIAL_Port_Temp1_Len := StrLen( SERIAL_Port_Temp1 ) ; For COM Ports > 9 \\.\ needs to prepended to the COM Port name.
-        if ( SERIAL_Port_Temp1_Len > 4 )                     ; So the valid names are
-            SERIAL_Port = \\.\%SERIAL_Port_Temp1%            ;  ... COM8  COM9   \\.\COM10  \\.\COM11  \\.\COM12 and so on...
-        else
+        if ( StrLen( SERIAL_Port_Temp1 ) > 4 )    ; For COM Ports > 9 \\.\ needs to prepended to the COM Port name.
+            SERIAL_Port = \\.\%SERIAL_Port_Temp1% ; So the valid names are        
+        else                                      ;  ... COM8  COM9   \\.\COM10  \\.\COM11  \\.\COM12 and so on...
             SERIAL_Port = %SERIAL_Port_Temp1%
         ; MsgBox, SERIAL_Port=%SERIAL_Port%
 
@@ -97,11 +96,11 @@ class SerialPort {
         return
     }
 
-    Write( Message ) {
+    Write( _Message ) {
         SetFormat, Integer, DEC
 
         ; Parse the Message. Byte0 is the number of bytes in the array.
-        StringSplit, Byte, Message, `,
+        StringSplit, Byte, _Message, `,
         Data_Length := Byte0
         ; MsgBox, Data_Length=%Data_Length% b1=%Byte1% b2=%Byte2% b3=%Byte3% b4=%Byte4%
 
@@ -126,25 +125,25 @@ class SerialPort {
             , "Int"  , "NULL" )
         if ( WF_Result <> 1 or Bytes_Sent <> Data_Length )
             MsgBox, Failed Dll WriteFile to COM Port, result=%WF_Result% `nData Length=%Data_Length% `nBytes_Sent=%Bytes_Sent%
-         
+
         return Bytes_Sent
     }
 
-    Read( Num_Bytes, mode = "", byref Bytes_Received = "" ) {
+    Read( _Num_Bytes, _Mode = "" ) {
         SetFormat, Integer, HEX
 
         ; Set the Data buffer size, prefill with 0x55 = ASCII character "U"
         ; VarSetCapacity won't assign anything less than 3 bytes.
         ; Meaning: If you tell it you want 1 or 2 byte size variable it will give you 3.
-        Data_Length := VarSetCapacity( Data, Num_Bytes, 0 )
+        Data_Length := VarSetCapacity( Data, _Num_Bytes, 0 )
         ; MsgBox, Data_Length=%Data_Length%
 
         ; ###### Read the data from the COM Port ######
-        ; MsgBox, this.FileHandle=%this.FileHandle% `nNum_Bytes=%Num_Bytes%
+        ; MsgBox, this.FileHandle=%this.FileHandle% `nNum_Bytes=%_Num_Bytes%
         Read_Result := DllCall( "ReadFile"
             , "UInt" , this.FileHandle ; hFile
             , "Str"  , Data            ; lpBuffer
-            , "Int"  , Num_Bytes       ; nNumberOfBytesToRead
+            , "Int"  , _Num_Bytes       ; nNumberOfBytesToRead
             , "UInt*", Bytes_Received  ; lpNumberOfBytesReceived
             , "Int"  , 0 )             ; lpOverlapped
         ; MsgBox, Read_Result=%Read_Result% `nBR=%Bytes_Received% ,`nData=%Data%
@@ -155,7 +154,7 @@ class SerialPort {
         }
 
         ; if you know the data coming back will not contain any binary zeros (0x00), you can request the 'raw' response
-        if ( mode = "raw" )
+        if ( _Mode = "raw" )
             return Data
 
         ; ###### Format the received data ######
@@ -169,14 +168,13 @@ class SerialPort {
         Data_HEX =
         Loop %Bytes_Received% 
         {
-            ;First byte into the Rx FIFO ends up at position 0
+            ; First byte into the Rx FIFO ends up at position 0
 
             Data_HEX_Temp := NumGet( Data, i, "UChar" )     ; Convert to HEX byte-by-byte
             StringTrimLeft, Data_HEX_Temp, Data_HEX_Temp, 2 ; Remove the 0x (added by the above line) from the front
 
-            ;If there is only 1 character then add the leading "0'
-            Length := StrLen( Data_HEX_Temp )
-            if ( Length =1 )
+            ; If there is only 1 character then add the leading "0'
+            if ( StrLen( Data_HEX_Temp ) == 1 )
                 Data_HEX_Temp = 0%Data_HEX_Temp%
 
             i++
@@ -187,8 +185,7 @@ class SerialPort {
         ; MsgBox, Read_Result=%Read_Result% `nBR=%Bytes_Received% ,`nData_HEX=%Data_HEX%
 
         SetFormat, Integer, DEC
-        Data := Data_HEX
 
-        return Data
+        return Data_HEX
     }
 }
