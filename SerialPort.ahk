@@ -84,7 +84,7 @@ class SerialPort {
     Write( _Message ) {
         ; Parse the Message.
         Byte := StrSplit( _Message, "," )
-        Data_Length := Byte.MaxIndex()
+        Data_Length := Byte.MaxIndex() ? Byte.MaxIndex() : 0
 
         ; Set the Data buffer size, prefill with 0xFF.
         VarSetCapacity( Data, Data_Length, 0xFF )
