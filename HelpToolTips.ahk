@@ -14,15 +14,14 @@ HelpToolTips_WM_MOUSEMOVE( _Delay = 300, _Duration = 0 ) {
     static CurrControl, PrevControl
     CurrControl := A_GuiControl
     if ( CurrControl != PrevControl ) {
-        SetTimer, DisplayToolTip, % _Delay
+        SetTimer, DisplayToolTip, % - _Delay
         if ( _Duration )
-            SetTimer, RemoveToolTip, % _Delay + _Duration
+            SetTimer, RemoveToolTip, % - ( _Delay + _Duration )
         PrevControl := CurrControl
     }
     return
 
     DisplayToolTip:
-        SetTimer, DisplayToolTip, Off
         try
             ToolTip % %CurrControl%_TT
         catch
@@ -30,7 +29,6 @@ HelpToolTips_WM_MOUSEMOVE( _Delay = 300, _Duration = 0 ) {
     return
 
     RemoveToolTip:
-        SetTimer, RemoveToolTip, Off
         ToolTip
     return
 }
