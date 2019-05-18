@@ -23,12 +23,12 @@ HelpToolTips_WM_MOUSEMOVE( _Delay = 300, _Duration = 0 ) {
 
     DisplayToolTip:
         try
-            ToolTip % %CurrControl%_TT
+            ToolTip, % %CurrControl%_TT,,, 20
         catch
-            ToolTip
+            ToolTip,,,, 20
     return
 
     RemoveToolTip:
-        ToolTip
+        ToolTip,,,, 20
     return
 }
