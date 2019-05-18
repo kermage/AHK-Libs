@@ -31,9 +31,9 @@ LoadSettings( _File = "Settings.ini", _Section = "", _Multi = false ) {
 
         Loop, Parse, SectionContent, `n
         {
-            KeyLine := InStr( A_LoopField, "=" )
-            StringLeft, Variable, A_LoopField, KeyLine - 1
-            StringRight, Value, A_LoopField, StrLen( A_LoopField ) - KeyLine
+            KeyLine  := InStr( A_LoopField, "=" )
+            Variable := SubStr( A_LoopField, 1,  KeyLine - 1 )
+            Value    := SubStr( A_LoopField, KeyLine + 1, StrLen( A_LoopField ) - KeyLine )
             Variable := RegExReplace( Variable, "\W", "_" )
 
             if _Multi
