@@ -23,11 +23,11 @@ class SerialPort {
             this._Error( "Failed Dll BuildCommDCB`nBCD_Result=" BCD_Result )
 
         ; ###### Extract/Format the COM Port Number ######
-        StringSplit, SERIAL_Port_Temp, _Settings, `:
-        if ( StrLen( SERIAL_Port_Temp1 ) > 4 )    ; For COM Ports > 9 \\.\ needs to prepended to the COM Port name.
-            SERIAL_Port = \\.\%SERIAL_Port_Temp1% ; So the valid names are        
-        else                                      ;  ... COM8  COM9   \\.\COM10  \\.\COM11  \\.\COM12 and so on...
-            SERIAL_Port = %SERIAL_Port_Temp1%
+        SERIAL_Port_Temp := StrSplit( _Settings, "`:" )
+        if ( StrLen( SERIAL_Port_Temp[1] ) > 4 )      ; For COM Ports > 9 \\.\ needs to prepended to the COM Port name.
+            SERIAL_Port := "\\.\" SERIAL_Port_Temp[1] ; So the valid names are        
+        else                                          ;  ... COM8  COM9   \\.\COM10  \\.\COM11  \\.\COM12 and so on...
+            SERIAL_Port := SERIAL_Port_Temp[1]
         ; MsgBox, SERIAL_Port=%SERIAL_Port%
 
         ; ###### Create COM File ######
@@ -82,17 +82,16 @@ class SerialPort {
     }
 
     Write( _Message ) {
-        ; Parse the Message. Byte0 is the number of bytes in the array.
-        StringSplit, Byte, _Message, `,
-        Data_Length := Byte0
-        ; MsgBox, Data_Length=%Data_Length% b1=%Byte1% b2=%Byte2% b3=%Byte3% b4=%Byte4%
+        ; Parse the Message.
+        Byte := StrSplit( _Message, "," )
+        Data_Length := Byte.MaxIndex()
 
         ; Set the Data buffer size, prefill with 0xFF.
-        VarSetCapacity( Data, Byte0, 0xFF )
+        VarSetCapacity( Data, Data_Length, 0xFF )
 
         ; Write the Message into the Data buffer
-        Loop % Byte0
-            NumPut( Byte%A_Index%, Data, A_Index - 1, "UChar" )
+        Loop % Data_Length
+            NumPut( Byte[ A_Index ], Data, A_Index - 1, "UChar" )
         ; MsgBox, Data string=%Data%
 
         ; ###### Write the data to the COM Port ######
@@ -158,7 +157,7 @@ class SerialPort {
         Loop, Parse, _Data     
             str .= "," Asc( A_LoopField )
 
-        StringTrimLeft, str, str, 1
+        str := SubStr( str, 2, StrLen( str ) - 1 )
         str .= "," 10
 
         return this.Write( str )
@@ -169,8 +168,8 @@ class SerialPort {
 
         Loop % StrLen( Read_Data ) / 2
         { 
-            StringLeft, Byte, Read_Data, 2 
-            StringTrimLeft, Read_Data, Read_Data, 2
+            Byte := SubStr( Read_Data, 1, 2 )
+            Read_Data := SubStr( Read_Data, 3, StrLen( Read_Data ) )
             Byte := "0x" Byte
 
             if ( Byte == "0x09" )
@@ -183,8 +182,8 @@ class SerialPort {
             ASCII .= ASCII_Chr
         }
 
-        StringReplace, ASCII, ASCII, #Tab#, % A_Tab, A
-        StringReplace, ASCII, ASCII, #Space#, % A_Space, A
+        ASCII := StrReplace( ASCII, "#Tab#", A_Tab )
+        ASCII := StrReplace( ASCII, "#Space#", A_Space )
 
         return ASCII
     }
