@@ -188,4 +188,39 @@ class SerialPort {
 
         return Data_HEX
     }
+
+    Send( _Data ) {
+        Loop, Parse, _Data     
+            str .= "," Asc( A_LoopField )
+
+        StringTrimLeft, str, str, 1
+        str .= "," 10
+
+        return this.Write( str )
+    }
+
+    Receive( _Length ) {
+        Read_Data := this.Read( _Length )
+
+        Loop % StrLen( Read_Data ) / 2
+        { 
+            StringLeft, Byte, Read_Data, 2 
+            StringTrimLeft, Read_Data, Read_Data, 2
+            Byte := "0x" Byte
+
+            if ( Byte == "0x09" )
+                ASCII_Chr = #Tab#
+            else if ( Byte == "0x20" )
+                ASCII_Chr = #Space#
+            else
+                ASCII_Chr := Chr( Byte )
+
+            ASCII .= ASCII_Chr
+        }
+
+        StringReplace, ASCII, ASCII, #Tab#, % A_Tab, A
+        StringReplace, ASCII, ASCII, #Space#, % A_Space, A
+
+        return ASCII
+    }
 }
