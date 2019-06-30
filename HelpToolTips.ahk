@@ -5,12 +5,12 @@ Function:
 ---------------------------------------------------------------------------
 */
 
-HelpToolTips( _Delay = 300, _Duration = 0, _Messages = "" ) {
-    _fn := Func( "HelpToolTips__WM_MOUSEMOVE" ).Bind( _Delay, _Duration, _Messages )
+HelpToolTips( _Messages, _Delay = 300, _Duration = 0 ) {
+    _fn := Func( "HelpToolTips__WM_MOUSEMOVE" ).Bind( _Messages, _Delay, _Duration )
     OnMessage( 0x200, _fn )
 }
 
-HelpToolTips__WM_MOUSEMOVE( _Delay = 300, _Duration = 0, _Messages = "" ) {
+HelpToolTips__WM_MOUSEMOVE( _Messages, _Delay = 300, _Duration = 0 ) {
     static CurrControl, PrevControl, Messages
     CurrControl := A_GuiControl
     Messages := _Messages
@@ -28,10 +28,7 @@ HelpToolTips__WM_MOUSEMOVE( _Delay = 300, _Duration = 0, _Messages = "" ) {
 
     DisplayToolTip:
         try {
-            if Messages
-                ToolTip, % Messages[ CurrControl ],,, 20
-            else
-                ToolTip, % %CurrControl%_TT,,, 20
+            ToolTip, % Messages[ CurrControl ],,, 20
         }
         catch
             ToolTip,,,, 20
