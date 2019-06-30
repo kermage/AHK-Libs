@@ -8,8 +8,11 @@
 - LoadSettings
 - MD5Hash
 - RunAsAdmin
+- SerialPort
 - StringM
 - TEA (Tiny Encryption Algorithm)
 - TimedFunction
 - ToolTipUI
 - WinUtils
+
+[**See the wiki**](https://github.com/kermage/AHK-Libs/wiki)
