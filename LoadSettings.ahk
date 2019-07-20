@@ -5,7 +5,7 @@ Function:
 ---------------------------------------------------------------------------
 */
 
-LoadSettings( _File = "Settings.ini", _Section = "", _Multi = false ) {
+LoadSettings( _File = "Settings.ini", _Multi = true, _Section = "" ) {
     Settings := []
 
     if ( _Section ) {
