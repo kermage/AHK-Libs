@@ -14,15 +14,9 @@ class ProcessMemory {
         return DllCall( "CloseHandle", "UInt", this.HWND )
     }
 
-    Read( _Address, _Type = "Int", _Length = 4 ) {
-        _Value := this.Read_Raw( _Address, _Type, _Length )
-
-        return NumGet( _Value, 0, _Type )
-    }
-
-    Read_Raw( _Address, _Type = "Int", _Length = 4 ) {
+    Read( _Address, _Type = "Int*", _Length = 4 ) {
         VarSetCapacity( _Value, _Length, 0 )
-        DllCall( "ReadProcessMemory", "UInt", this.HWND, "UInt", _Address, "Str", _Value, "UInt", _Length, "UInt *", 0 )
+        DllCall( "ReadProcessMemory", "UInt", this.HWND, "UInt", _Address, _Type, _Value, "UInt", _Length, "UInt*", 0 )
 
         return _Value
     }
@@ -31,7 +25,7 @@ class ProcessMemory {
         Buffer := ""
 
         Loop {
-            Value := this.Read_Raw( _Address, "Str", 1 )
+            Value := this.Read( _Address, "Str", 1 )
 
             if ( ! Value ) {
                 break
@@ -44,10 +38,7 @@ class ProcessMemory {
         return Buffer
     }
 
-    Write( _Address, _Value, _Type = "Int", _Length = 4 ) {
-        VarSetCapacity( Value, _Length, 0 )
-        NumPut( _Value, Value, 0, _Type )
-
-        return DllCall( "WriteProcessMemory", "UInt", this.HWND, "UInt", _Address, "UInt", &Value, "UInt", _Length, "UInt *", 0 )
+    Write( _Address, _Value, _Type = "Int*", _Length = 4 ) {
+        return DllCall( "WriteProcessMemory", "UInt", this.HWND, "UInt", _Address, _Type, _Value, "UInt", _Length, "UInt*", 0 )
     }
 }
