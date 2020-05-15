@@ -10,7 +10,7 @@ class ProcessMemory {
         this.HWND := DllCall( "OpenProcess", "UInt", _Privilege, "UInt", 0, "UInt", _PID )
     }
 
-    Close() {
+    __Delete() {
         return DllCall( "CloseHandle", "UInt", this.HWND )
     }
 
