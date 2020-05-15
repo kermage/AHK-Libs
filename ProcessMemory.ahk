@@ -41,4 +41,12 @@ class ProcessMemory {
     Write( _Address, _Value, _Type = "Int*", _Length = 4 ) {
         return DllCall( "WriteProcessMemory", "UInt", this.HWND, "UInt", _Address, _Type, _Value, "UInt", _Length, "UInt*", 0 )
     }
+
+    Write_String( _Address, _Value ) {
+        Loop, Parse, % _Value
+        {
+            this.Write( _Address, A_LoopField, "Str" )
+            _Address++
+        }
+    }
 }
