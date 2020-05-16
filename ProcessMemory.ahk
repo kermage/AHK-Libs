@@ -53,4 +53,11 @@ class ProcessMemory {
             _Address++
         }
     }
+
+    Pointer( _Base, _Type = "Int*", _Offsets* ) {
+        for index, offset in _Offsets
+            _Base := this.Read( _Base, _Type ) + offset
+
+        Return this.Read( _Base, _Type )
+    }
 }
