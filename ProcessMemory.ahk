@@ -8,6 +8,10 @@ Function:
 class ProcessMemory {
     __New( _PID, _Privilege = 0x1F0FFF ) {
         this.HWND := DllCall( "OpenProcess", "UInt", _Privilege, "UInt", 0, "UInt", _PID )
+
+        WinGet, cID, ID, % "ahk_pid " _PID
+
+        this.BaseAddress := DllCall( A_PtrSize = 4 ? "GetWindowLong" : "GetWindowLongPtr", "Ptr", cID, "Int", -6, A_Is64bitOS ? "Int64" : "UInt" )
     }
 
     __Delete() {
