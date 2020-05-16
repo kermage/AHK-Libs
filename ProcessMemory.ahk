@@ -20,9 +20,8 @@ class ProcessMemory {
         return DllCall( "CloseHandle", "UInt", this.HWND )
     }
 
-    Read( _Address, _Type = "Int*", _Length = 4 ) {
-        VarSetCapacity( _Value, _Length, 0 )
-        DllCall( "ReadProcessMemory", "UInt", this.HWND, "UInt", _Address, _Type, _Value, "UInt", _Length, "UInt*", this.BytesRead )
+    Read( _Address, _Type = "UInt*", _Length = 4 ) {
+        DllCall( "ReadProcessMemory", "Ptr", this.HWND, "Ptr", _Address, _Type, _Value, "Ptr", _Length, "Ptr", this.BytesRead )
 
         return _Value
     }
@@ -44,8 +43,8 @@ class ProcessMemory {
         return Buffer
     }
 
-    Write( _Address, _Value, _Type = "Int*", _Length = 4 ) {
-        return DllCall( "WriteProcessMemory", "UInt", this.HWND, "UInt", _Address, _Type, _Value, "UInt", _Length, "UInt*", this.BytesWrite )
+    Write( _Address, _Value, _Type = "UInt*", _Length = 4 ) {
+        return DllCall( "WriteProcessMemory", "Ptr", this.HWND, "Ptr", _Address, _Type, _Value, "Ptr", _Length, "Ptr", this.BytesWrite )
     }
 
     Write_String( _Address, _Value ) {
