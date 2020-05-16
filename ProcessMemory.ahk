@@ -17,6 +17,9 @@ class ProcessMemory {
     }
 
     __Delete() {
+        DllCall( "GlobalFree", "Ptr", this.BytesRead )
+        DllCall( "GlobalFree", "Ptr", this.BytesWrite )
+
         return DllCall( "CloseHandle", "UInt", this.HWND )
     }
 
