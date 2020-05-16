@@ -12,6 +12,8 @@ class ProcessMemory {
         WinGet, cID, ID, % "ahk_pid " _PID
 
         this.BaseAddress := DllCall( A_PtrSize = 4 ? "GetWindowLong" : "GetWindowLongPtr", "Ptr", cID, "Int", -6, A_Is64bitOS ? "Int64" : "UInt" )
+        this.BytesRead := DllCall( "GlobalAlloc", "UInt", 0x0040, "Ptr", A_PtrSize, "Ptr" )
+        this.BytesWrite := DllCall( "GlobalAlloc", "UInt", 0x0040, "Ptr", A_PtrSize, "Ptr" )
     }
 
     __Delete() {
@@ -20,7 +22,7 @@ class ProcessMemory {
 
     Read( _Address, _Type = "Int*", _Length = 4 ) {
         VarSetCapacity( _Value, _Length, 0 )
-        DllCall( "ReadProcessMemory", "UInt", this.HWND, "UInt", _Address, _Type, _Value, "UInt", _Length, "UInt*", 0 )
+        DllCall( "ReadProcessMemory", "UInt", this.HWND, "UInt", _Address, _Type, _Value, "UInt", _Length, "UInt*", this.BytesRead )
 
         return _Value
     }
@@ -43,7 +45,7 @@ class ProcessMemory {
     }
 
     Write( _Address, _Value, _Type = "Int*", _Length = 4 ) {
-        return DllCall( "WriteProcessMemory", "UInt", this.HWND, "UInt", _Address, _Type, _Value, "UInt", _Length, "UInt*", 0 )
+        return DllCall( "WriteProcessMemory", "UInt", this.HWND, "UInt", _Address, _Type, _Value, "UInt", _Length, "UInt*", this.BytesWrite )
     }
 
     Write_String( _Address, _Value ) {
