@@ -26,33 +26,22 @@ class ProcessMemory {
         return _Value
     }
 
-    Read_String( _Address ) {
-        Buffer := ""
+    Read_String( _Address, _Length = 4 ) {
+        VarSetCapacity( Buffer, _Length, 0 )
+        DllCall( "ReadProcessMemory", "Ptr", this.HWND, "Ptr", _Address, "Ptr", &Buffer, "Ptr", _Length, "Ptr", this.BytesRead )
 
-        Loop {
-            Value := this.Read( _Address, "Str", 1 )
-
-            if ( ! Value ) {
-                break
-            }
-
-            Buffer .= Value
-            _Address++
-        }
-
-        return Buffer
+        return StrGet( &Buffer, "UTF-8" )
     }
 
     Write( _Address, _Value, _Type = "UInt*", _Length = 4 ) {
         return DllCall( "WriteProcessMemory", "Ptr", this.HWND, "Ptr", _Address, _Type, _Value, "Ptr", _Length, "Ptr", this.BytesWrite )
     }
 
-    Write_String( _Address, _Value ) {
-        Loop, Parse, % _Value
-        {
-            this.Write( _Address, A_LoopField, "Str" )
-            _Address++
-        }
+    Write_String( _Address, _Value, _Length = 4 ) {
+        VarSetCapacity( Buffer, _Length, 0 )
+        StrPut( _Value, &Buffer, StrLen( _Value ) + 1, "UTF-8" )
+
+        return DllCall( "WriteProcessMemory", "Ptr", this.HWND, "Ptr", _Address, "Ptr", &Buffer, "Ptr", _Length, "Ptr", this.BytesWrite )
     }
 
     Pointer( _Base, _Type = "Int*", _Offsets* ) {
