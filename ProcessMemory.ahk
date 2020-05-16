@@ -44,10 +44,14 @@ class ProcessMemory {
         return DllCall( "WriteProcessMemory", "Ptr", this.HWND, "Ptr", _Address, "Ptr", &Buffer, "Ptr", _Length, "Ptr", this.BytesWrite )
     }
 
-    Pointer( _Base, _Type = "Int*", _Offsets* ) {
+    Pointer( _Base, _Type = "UInt", _Offsets* ) {
         for index, offset in _Offsets
             _Base := this.Read( _Base, _Type ) + offset
 
-        Return this.Read( _Base, _Type )
+        return this.Read( _Base, _Type )
+    }
+
+    Trace( _Address, _Offsets* ) {
+        return _Offsets.Remove() + this.Pointer( _Address, "UInt", _Offsets* )
     }
 }
