@@ -28,4 +28,24 @@ class PixelWindow {
     GetColor( _X, _Y ) {
         return DllCall( "GetPixel", "UInt", this.Context, "UInt", _X, "UInt", _Y )
     }
+
+    Search( _X1, _Y1, _X2, _Y2, _Color ) {
+        X := _X1
+
+        Loop % ( _X2 - _X1 ) {
+            Y := _Y1
+
+            Loop % ( _Y2 - _Y1 ) {
+                if ( _Color == this.GetColor( X, Y ) ) {
+                    return { X: X, Y: Y }
+                }
+
+                Y++
+            }
+
+            X++
+        }
+
+        return false
+    }
 }
