@@ -22,7 +22,7 @@ StringM( _String, _Option, _Param1 = "", _Param2 = "" ) {
         Loop, Parse, _Unique
         {
             StringReplace, _String, _String, % A_LoopField,, UseErrorLevel
-            _NewString .= A_LoopField . ErrorLevel 
+            _NewString .= A_LoopField . ErrorLevel
         }
     }
     else if ( _Option = "Repeat" )

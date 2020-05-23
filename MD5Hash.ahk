@@ -14,7 +14,7 @@ StringMD5( ByRef V, L = 0 ) {
     return MD5
 }
 
-FileMD5( sFile = "", cSz = 4 ) { 
+FileMD5( sFile = "", cSz = 4 ) {
     cSz := ( cSz<0 || cSz>8 ) ? 2**22 : 2**( 18+cSz ), VarSetCapacity( Buffer, cSz, 0 )
     hFil := DllCall( "CreateFile", Str, sFile, UInt, 0x80000000, Int, 1, Int, 0, Int, 3, Int, 0, Int, 0 )
     IfLess, hFil, 1, return, hFil

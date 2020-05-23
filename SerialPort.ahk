@@ -25,7 +25,7 @@ class SerialPort {
         ; ###### Extract/Format the COM Port Number ######
         SERIAL_Port_Temp := StrSplit( _Settings, "`:" )
         if ( StrLen( SERIAL_Port_Temp[1] ) > 4 )      ; For COM Ports > 9 \\.\ needs to prepended to the COM Port name.
-            SERIAL_Port := "\\.\" SERIAL_Port_Temp[1] ; So the valid names are        
+            SERIAL_Port := "\\.\" SERIAL_Port_Temp[1] ; So the valid names are
         else                                          ;  ... COM8  COM9   \\.\COM10  \\.\COM11  \\.\COM12 and so on...
             SERIAL_Port := SERIAL_Port_Temp[1]
         ; MsgBox, SERIAL_Port=%SERIAL_Port%
@@ -154,7 +154,7 @@ class SerialPort {
     }
 
     Send( _Data ) {
-        Loop, Parse, _Data     
+        Loop, Parse, _Data
             str .= "," Asc( A_LoopField )
 
         str := SubStr( str, 2, StrLen( str ) - 1 )
@@ -167,7 +167,7 @@ class SerialPort {
         Read_Data := this.Read( _Length )
 
         Loop % StrLen( Read_Data ) / 2
-        { 
+        {
             Byte := SubStr( Read_Data, 1, 2 )
             Read_Data := SubStr( Read_Data, 3, StrLen( Read_Data ) )
             Byte := "0x" Byte
