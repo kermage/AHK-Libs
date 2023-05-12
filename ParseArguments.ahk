@@ -24,6 +24,13 @@ ParseArguments() {
             key := SubStr( key, 2 )
         }
 
+        temp := StrSplit( key, "=",, 2 )
+
+        if ( temp[2] ) {
+            key := temp[1]
+            value := temp[2]
+        }
+
         if ( ! value || SubStr( value, 1, 1 ) == "-" || SubStr( value, 1, 1 ) == "/" ) {
             value := true
         }
