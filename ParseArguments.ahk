@@ -26,13 +26,13 @@ ParseArguments() {
 
         temp := StrSplit( key, "=",, 2 )
 
+        if ( ! value || SubStr( value, 1, 1 ) == "-" || SubStr( value, 1, 1 ) == "/" ) {
+            value := true
+        }
+
         if ( temp[2] ) {
             key := temp[1]
             value := temp[2]
-        }
-
-        if ( ! value || SubStr( value, 1, 1 ) == "-" || SubStr( value, 1, 1 ) == "/" ) {
-            value := true
         }
 
         argv[ key ] := value
