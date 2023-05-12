@@ -24,7 +24,7 @@ ParseArguments() {
             key := SubStr( key, 2 )
         }
 
-        if ( ! value || SubStr( value, 1, 1 ) == "-" ) {
+        if ( ! value || SubStr( value, 1, 1 ) == "-" || SubStr( value, 1, 1 ) == "/" ) {
             value := true
         }
 
