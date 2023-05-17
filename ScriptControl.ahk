@@ -6,8 +6,8 @@ Function:
 */
 
 class ScriptControl {
-    __New( _HWND ) {
-        this.HWND := _HWND
+    __New( _PID ) {
+        this.PID := _PID
 
         OnMessage( 0x004A, ObjBindMethod( this, "Receive" ) )
     }
@@ -42,7 +42,7 @@ class ScriptControl {
         NumPut( SizeBytes, CopyDataStruct, A_PtrSize )
         NumPut( &_String, CopyDataStruct, 2 * A_PtrSize )
 
-        SendMessage, 0x004A, 0, &CopyDataStruct,, % "ahk_id " this.HWND,,,, 0
+        SendMessage, 0x004A, 0, &CopyDataStruct,, % "ahk_pid " this.PID,,,, 0
 
         return ErrorLevel
     }
