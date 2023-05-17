@@ -13,17 +13,23 @@ class ScriptControl {
     }
 
 	run( _Name ) {
-        return this.Send( this.Compose( "run", _Name ) )
+        return this.Send( this.Compose( "run", _Name ), this.PID )
     }
 
 	get( _Name ) {
-        this.Send( this.Compose( "get", _Name ) )
+        _DetectHiddenWindows := A_DetectHiddenWindows
+
+        DetectHiddenWindows, On
+        WinGet, cPID, PID, % "ahk_id " A_ScriptHwnd
+        DetectHiddenWindows, % _DetectHiddenWindows
+
+        this.Send( this.Compose( "get", _Name, cPID ), this.PID )
 
         return this.gotValue
     }
 
 	set( _Name, _Value ) {
-        return this.Send( this.Compose( "set", _Name, _Value ) )
+        return this.Send( this.Compose( "set", _Name, _Value ), this.PID )
     }
 
     Compose( _Params* ) {
@@ -35,14 +41,14 @@ class ScriptControl {
         return SubStr( Message, 1, -5 )
     }
 
-    Send( _String ) {
+    Send( _String, _PID ) {
         SizeBytes := ( StrLen( _String ) + 1 ) * ( A_IsUnicode ? 2 : 1 )
 
         VarSetCapacity( CopyDataStruct, 3 * A_PtrSize + SizeBytes, 0 )
         NumPut( SizeBytes, CopyDataStruct, A_PtrSize )
         NumPut( &_String, CopyDataStruct, 2 * A_PtrSize )
 
-        SendMessage, 0x004A, 0, &CopyDataStruct,, % "ahk_pid " this.PID,,,, 0
+        SendMessage, 0x004A, 0, &CopyDataStruct,, % "ahk_pid " _PID,,,, 0
 
         return ErrorLevel
     }
@@ -62,7 +68,7 @@ class ScriptControl {
         } else if ( "get" == Action ) {
             value := Params[1]
 
-            this.Send( this.Compose( "callback", %value% ) )
+            this.Send( this.Compose( "callback", %value% ), Params[2] )
         } else if ( "callback" == Action ) {
             this.gotValue := Params[1]
         } else if ( "set" == Action ) {
