@@ -21,7 +21,7 @@ JSONStringify( _Data ) {
         }
 
         for key, value in _Data
-            string .= ( isArray ? "" : """" key """:" ) JSONStringify( value ) ","
+            string .= ( isArray ? "" : JSONStringify__Escape( key ) ":" ) JSONStringify( value ) ","
 
         string := RTrim( string, "," )
 
@@ -30,5 +30,18 @@ JSONStringify( _Data ) {
     else if _Data is number
         return _Data
     else
-        return """" _Data """"
+        return JSONStringify__Escape( _Data )
+}
+
+JSONStringify__Escape( _Value ) {
+    _Value := StrReplace( _Value, Chr( 34 ), "\" . Chr( 34 ) )
+
+    _Value := StrReplace( _Value, "`n", "\n" )
+    _Value := StrReplace( _Value, "`r", "\r" )
+    _Value := StrReplace( _Value, "`t", "\t" )
+
+    _Value := StrReplace( _Value,  "\", "\\" )
+    _Value := StrReplace( _Value,  "/", "\/" )
+
+    return Chr( 34 ) _Value Chr( 34 )
 }
