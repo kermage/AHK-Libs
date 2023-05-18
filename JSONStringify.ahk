@@ -6,12 +6,14 @@ Function:
 */
 
 JSONStringify( _Data ) {
-    if IsObject( _Data )
+    static fType := VerCompare( A_AhkVersion, "2.0" ) < 0 ? Func( "Type" ) : ""
+
+    if IsObject( _Data ) && ( ! fType ? ObjGetCapacity( _Data ) != "" : fType.Call( _Data ) == "Object" )
     {
         string := ""
         isArray := true
 
-        for key in _Data
+        for key, value in _Data
         {
             if ( key == A_Index )
                 continue
