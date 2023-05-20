@@ -6,44 +6,36 @@ Function:
 */
 
 JSONStringify( _Data ) {
-    static fType := VerCompare( A_AhkVersion, "2.0" ) < 0 ? Func( "Type" ) : ""
+    dType := Type( _Data )
+    Quote := Chr( 34 )
 
-    if IsObject( _Data ) && ( ! fType ? ObjGetCapacity( _Data ) != "" : fType.Call( _Data ) == "Object" )
-    {
-        string := ""
-        isArray := true
+    Escape( _Value ) {
+        _Value := StrReplace( _Value, Quote, "\" . Quote )
 
-        for key, value in _Data
-        {
-            if ( key == A_Index )
-                continue
+        _Value := StrReplace( _Value, "`n", "\n" )
+        _Value := StrReplace( _Value, "`r", "\r" )
+        _Value := StrReplace( _Value, "`t", "\t" )
 
-            isArray := false
-            break
+        _Value := StrReplace( _Value,  "\", "\\" )
+        _Value := StrReplace( _Value,  "/", "\/" )
+
+        return Quote . _Value . Quote
+    }
+
+    if ( dType == "Object" || dType == "Array" || dType == "Map" ) {
+        output := ""
+
+        for key, value in dType == "Object" ? _Data.OwnProps() : _Data {
+            output .= dType == "Array" ? "" : ( Escape( key ) . ":" ) ; key
+            output .= JSONStringify( value ) . ","                    ; value
         }
 
-        for key, value in _Data
-            string .= ( isArray ? "" : JSONStringify__Escape( key ) ":" ) JSONStringify( value ) ","
+        output := RTrim( output, "," )
 
-        string := RTrim( string, "," )
-
-        return ( isArray ? "[" string "]" : "{" string "}" )
-    }
-    else if _Data is number
+        return ( dType == "Array" ? "[" output "]" : "{" output "}" )
+    } else if ( IsNumber( _Data ) ) {
         return _Data
-    else
-        return JSONStringify__Escape( _Data )
-}
+    }
 
-JSONStringify__Escape( _Value ) {
-    _Value := StrReplace( _Value, Chr( 34 ), "\" . Chr( 34 ) )
-
-    _Value := StrReplace( _Value, "`n", "\n" )
-    _Value := StrReplace( _Value, "`r", "\r" )
-    _Value := StrReplace( _Value, "`t", "\t" )
-
-    _Value := StrReplace( _Value,  "\", "\\" )
-    _Value := StrReplace( _Value,  "/", "\/" )
-
-    return Chr( 34 ) _Value Chr( 34 )
+    return Escape( _Data )
 }
