@@ -54,13 +54,41 @@ class Comparable
         return Comparable( Type( this.Value ) ).Is( _Expected )
     }
 
+    IsInt( _Strict := false ) {
+        return _Strict ? this.IsType( "Integer" ) : IsInteger( this.Value )
+    }
+
+    IsFloat( _Strict := false ) {
+        return _Strict ? this.IsType( "Float" ) : IsFloat( this.Value )
+    }
+
+    IsNumeric( _Strict := false ) {
+        return _Strict ? ( this.IsInt( true ) || this.IsFloat( true ) ) : IsNumber( this.Value )
+    }
+
+    IsObject() {
+        return this.IsType( "Object" )
+    }
+
+    IsArray() {
+        return this.IsType( "Array" )
+    }
+
+    IsMap() {
+        return this.IsType( "Map" )
+    }
+
+    IsEnumerable() {
+        return this.IsArray() || this.IsMap()
+    }
+
 
     ToHave( _Expected ) {
-        if ( this.IsType( "Object" ) || this.IsType( "Array" ) || this.IsType( "Map" ) ) {
-            props := this.IsType( "Object" ) ? this.Value.OwnProps() : this.Value
+        if ( this.IsObject() || this.IsEnumerable() ) {
+            props := this.IsObject() ? this.Value.OwnProps() : this.Value
 
             for index, value in props {
-                if ( Comparable( this.IsType( "Array" ) ? value : index ).Is( _Expected ) ) {
+                if ( Comparable( this.IsArray() ? value : index ).Is( _Expected ) ) {
                     return true
                 }
             }
@@ -72,8 +100,8 @@ class Comparable
     }
 
     ToContain( _Expected ) {
-        if ( this.IsType( "Object" ) || this.IsType( "Array" ) || this.IsType( "Map" ) ) {
-            props := this.IsType( "Object" ) ? this.Value.OwnProps() : this.Value
+        if ( this.IsObject() || this.IsEnumerable() ) {
+            props := this.IsObject() ? this.Value.OwnProps() : this.Value
 
             for index, value in props {
                 if ( Comparable( value ).Is( _Expected ) ) {
