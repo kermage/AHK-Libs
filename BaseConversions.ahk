@@ -5,7 +5,7 @@ Function:
 ---------------------------------------------------------------------------
 */
 
-Base2Dec( _Number, _Base := 16 ) {
+BaseToDec( _Number, _Base := 16 ) {
     if ( ! _Number ) {
         return 0
     }
@@ -42,7 +42,7 @@ Base2Dec( _Number, _Base := 16 ) {
     return result
 }
 
-Dec2Base( _Number, _Base := 16 ) {
+DecToBase( _Number, _Base := 16 ) {
     if ( ! _Number ) {
         return "0"
     }
