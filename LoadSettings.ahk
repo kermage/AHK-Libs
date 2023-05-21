@@ -5,31 +5,31 @@ Function:
 ---------------------------------------------------------------------------
 */
 
-LoadSettings( _File = "Settings.ini", _Multi = true, _Section = "" ) {
-    Settings := []
+LoadSettings( _File := "Settings.ini", _Multi := true, _Section := "" ) {
+    Settings := Map()
 
     if ( _Section ) {
         SectionNames := _Section
     } else {
-        IniRead, SectionNames, % _File
+        SectionNames := IniRead( _File )
     }
 
-    if ( StrSplit( SectionNames, "`n" ).MaxIndex() == 1 ) {
+    if ( StrSplit( SectionNames, "`n" ).Length == 1 ) {
         _Section := SectionNames
     }
 
-    Loop, Parse, SectionNames, `n
+    Loop Parse SectionNames, "`n"
     {
         SectionName := A_LoopField
 
         if _Multi
-            Settings[ SectionName ] := []
+            Settings[ SectionName ] := Map()
         else
             Prefix := ( _Section ? "" : SectionName . "_" )
 
-        IniRead, SectionContent, % _File, % SectionName
+        SectionContent := IniRead( _File, SectionName )
 
-        Loop, Parse, SectionContent, `n
+        Loop Parse SectionContent, "`n"
         {
             KeyLine  := InStr( A_LoopField, "=" )
             Variable := SubStr( A_LoopField, 1,  KeyLine - 1 )
