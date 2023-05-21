@@ -31,6 +31,8 @@ class Expect
 
             throw Error( Trim( Format( "Expected {1} {2} {3}", Expect.Printable( this.Comparable.Value ), _Method, _Params ) ) )
         }
+
+        return this
     }
 
 

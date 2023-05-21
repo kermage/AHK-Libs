@@ -10,21 +10,20 @@ Function:
 class Test {
     __New( _Name, _Expectations* ) {
         TestGui := Gui( "", _Name )
-        Headers := [ "Have", "Comparator", "Want", "Status", "Message" ]
-        LV := TestGui.AddListView( "NoSortHdr -Redraw R" _Expectations.Length, Headers )
+        Headers := [ "Have", "Comparator", "Want", "Status" ]
+        LV := TestGui.AddListView( "NoSortHdr -Redraw", Headers )
+
+        LV.Messages := Map( "Name", _Name )
 
         for item in _Expectations {
-            try {
-                item( Test.Expect( LV, A_Index ) )
-                LV.Modify( A_Index, "Col4", "OK" )
-            } catch Error as e {
-                LV.Modify( A_Index, "Col4", "Failed", e.Message )
-            }
+            item( Test.Expect( LV ) )
         }
 
+        LV.OnEvent( "ItemSelect", ObjBindMethod( Test.Expect, "ItemSelected" ) )
         LV.GetPos( &x, &y, &w, &h )
 
         w := x / 2
+        h := LV.GetCount() * 20
 
         Loop Headers.Length {
             LV.ModifyCol( A_Index, "AutoHDR" )
@@ -38,22 +37,42 @@ class Test {
     }
 
     class Expect {
-        __New( _Test, _Index ) {
+        __New( _Test ) {
             this.Test := _Test
-            this.Index := _Index
         }
 
         Call( _Value, _ID := "" ) {
             this.Value := _Value
-            this.Test.Add( "", _ID ? _ID : _Value )
+            this.ID := _ID
 
             return this
         }
 
         __Call( _Method, _Params ) {
-            this.Test.Modify( this.Index, "Col2", _Method, _Params.Length ? _Params[ 1 ] : "" )
+            this.Test.Add(
+                "",
+                Expect.Printable( this.ID ? this.ID : this.Value ),
+                _Method,
+                _Params.Length ? Expect.Printable( _Params[ 1 ] ) : ""
+            )
 
-            return ObjBindMethod( Expect( this.Value ), _Method, _Params* )()
+            _Index := this.Test.GetCount()
+
+            try {
+                ObjBindMethod( Expect( this.Value ), _Method, _Params* )()
+                this.Test.Modify( _Index, "Col4", "OK" )
+            } catch Error as e {
+                this.Test.Modify( _Index, "Col4", "Failed" )
+                this.Test.Messages[ _Index ] := e.Message
+            }
+
+            return this
+        }
+
+        static ItemSelected( GuiCtrlObj, Item, Selected ) {
+            if ( Selected && GuiCtrlObj.Messages.Has( Item ) ) {
+                MsgBox( GuiCtrlObj.Messages[ Item ], GuiCtrlObj.Messages["Name"] ": Expectation #" Item, "IconX" )
+            }
         }
     }
 }
