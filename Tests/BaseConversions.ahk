@@ -2,9 +2,6 @@
 #Warn All
 
 #Include <BaseConversions>
-#Include <JSONStringify>
-#Include <Comparable>
-#Include <Expect>
 #Include <Test>
 
 Test( "Dec2Base 16",

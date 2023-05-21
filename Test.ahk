@@ -5,6 +5,8 @@ Function:
 ---------------------------------------------------------------------------
 */
 
+#Include <Expect>
+
 class Test {
     __New( _Name, _Expectations* ) {
         TestGui := Gui( "", _Name )

@@ -5,6 +5,9 @@ Function:
 ---------------------------------------------------------------------------
 */
 
+#Include <JSONStringify>
+#Include <Comparable>
+
 class Expect
 {
     __New( _Value ) {
