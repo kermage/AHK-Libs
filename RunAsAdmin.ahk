@@ -6,9 +6,16 @@ Function:
 */
 
 RunAsAdmin() {
-    IfEqual, A_IsAdmin, 1, Return 0
-    Loop % A_Args.Length()
-        params .= A_Space . A_Args[ A_Index ]
-    DllCall( "shell32\ShellExecute" ( A_IsUnicode ? "":"A" ), uint, 0, str, "RunAs", str, ( A_IsCompiled ? A_ScriptFullPath : A_AhkPath ), str, ( A_IsCompiled ? "" : """" . A_ScriptFullPath . """" . A_Space ) params, str, A_WorkingDir, int, 1 )
+    if ( A_IsAdmin ) {
+        return
+    }
+
+    _Params := ""
+
+    Loop A_Args.Length {
+        _Params .= A_Space . A_Args[ A_Index ]
+    }
+
+    DllCall( "shell32\ShellExecute", "UInt", 0, "Str", "RunAs", "Str", ( A_IsCompiled ? A_ScriptFullPath : A_AhkPath ), "Str", ( A_IsCompiled ? "" : Chr( 34 ) . A_ScriptFullPath . Chr( 34 ) . A_Space ) _Params, "Str", A_WorkingDir, "Int", 1 )
     ExitApp
 }

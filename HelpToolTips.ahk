@@ -5,36 +5,26 @@ Function:
 ---------------------------------------------------------------------------
 */
 
-HelpToolTips( _Messages, _Delay = 300, _Duration = 0 ) {
-    _fn := Func( "HelpToolTips__WM_MOUSEMOVE" ).Bind( _Messages, _Delay, _Duration )
-    OnMessage( 0x200, _fn )
-}
+HelpToolTips( _Messages, _Delay := 300, _Duration := 0 ) {
+    OnMessage( 0x200, Receive )
 
-HelpToolTips__WM_MOUSEMOVE( _Messages, _Delay = 300, _Duration = 0 ) {
-    static CurrControl, PrevControl, Messages
-    CurrControl := A_GuiControl
-    Messages := _Messages
+    Receive( wParam, lParam, msg, hwnd ) {
+        static PrevHwnd := 0
 
-    if ( CurrControl != PrevControl ) {
-        SetTimer, DisplayToolTip, % - _Delay
+        if ( hwnd != PrevHwnd ) {
+            ToolTip()
 
-        if ( _Duration )
-            SetTimer, RemoveToolTip, % - ( _Delay + _Duration )
+            CurrControl := GuiCtrlFromHwnd( hwnd )
 
-        PrevControl := CurrControl
-    }
+            if ( CurrControl && CurrControl.Name && _Messages.Has( CurrControl.Name ) ) {
+                SetTimer () => ToolTip( _Messages[ CurrControl.Name ] ), - _Delay
 
-    return
+                if ( _Duration ) {
+                    SetTimer () => ToolTip(), - ( _Delay + _Duration )
+                }
+            }
 
-    DisplayToolTip:
-        try {
-            ToolTip, % Messages[ CurrControl ],,, 20
+            PrevHwnd := hwnd
         }
-        catch
-            ToolTip,,,, 20
-    return
-
-    RemoveToolTip:
-        ToolTip,,,, 20
-    return
+    }
 }
