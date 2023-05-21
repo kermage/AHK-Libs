@@ -10,18 +10,31 @@ Function:
 class Test {
     __New( _Name, _Expectations* ) {
         TestGui := Gui( "", _Name )
-        LV := TestGui.AddListView( "NoSortHdr", ["Have", "Comparator", "Want", "Status"])
+        Headers := [ "Have", "Comparator", "Want", "Status", "Message" ]
+        LV := TestGui.AddListView( "NoSortHdr -Redraw R" _Expectations.Length, Headers )
 
         for item in _Expectations {
             try {
                 item( Test.Expect( LV, A_Index ) )
                 LV.Modify( A_Index, "Col4", "OK" )
             } catch Error as e {
-                LV.Modify( A_Index, "Col4", "Failed" )
+                LV.Modify( A_Index, "Col4", "Failed", e.Message )
             }
         }
 
-        TestGui.Show()
+        LV.GetPos( &x, &y, &w, &h )
+
+        w := x / 2
+
+        Loop Headers.Length {
+            LV.ModifyCol( A_Index, "AutoHDR" )
+
+            w += SendMessage( 0x101D, A_Index - 1, 0, LV )
+        }
+
+        LV.Move( x, y, w, h )
+        LV.Opt( "+Redraw" )
+        TestGui.Show( "AutoSize" )
     }
 
     class Expect {
@@ -30,9 +43,9 @@ class Test {
             this.Index := _Index
         }
 
-        Call( _Value ) {
+        Call( _Value, _ID := "" ) {
             this.Value := _Value
-            this.Test.Add( "", _Value )
+            this.Test.Add( "", _ID ? _ID : _Value )
 
             return this
         }
