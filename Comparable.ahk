@@ -82,6 +82,10 @@ class Comparable
         return this.IsArray() || this.IsMap()
     }
 
+    IsAssociative() {
+        return this.IsObject() || this.IsMap()
+    }
+
 
     ToHave( _Expected ) {
         if ( this.IsObject() || this.IsEnumerable() ) {
@@ -113,5 +117,37 @@ class Comparable
         }
 
         return this.ToHave( _Expected )
+    }
+
+
+    ToEqual( _Expected ) {
+        expected := Comparable( _Expected )
+
+        if ( this.IsAssociative() && expected.IsAssociative() ) {
+            return expected.ToContainEqual( this.Value )
+        }
+
+        return this.Is( _Expected )
+    }
+
+    ToContainEqual( _Expected ) {
+        _Value := Comparable( this.Value )
+        expected := Comparable( _Expected )
+
+        if ( ! this.IsAssociative() || ! expected.IsAssociative() ) {
+            return false
+        }
+
+        props := expected.IsObject() ? _Expected.OwnProps() : _Expected
+
+        for index, value in props {
+            if ( _Value.ToHave( index ) && _Value.ToContain( value ) ) {
+                continue
+            }
+
+            return false
+        }
+
+        return true
     }
 }
