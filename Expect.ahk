@@ -5,8 +5,8 @@ Function:
 ---------------------------------------------------------------------------
 */
 
-#Include <JSONStringify>
 #Include <Comparable>
+#Include <Printable>
 
 class Expect
 {
@@ -19,29 +19,18 @@ class Expect
         MethodName := StrReplace( MethodName, "ToBe", "Is" )
 
         if ( ! HasMethod( this.Comparable, MethodName ) ) {
-            throw Error( "Unknown method named " _Method )
+            throw Error( "Unknown method named " Printable( Chr( 34 ) . _Method . Chr( 34 ) ).Bold() )
         }
 
         if ( ! ObjBindMethod( this.Comparable, MethodName, _Params* )() ) {
             _Method := StrReplace( _Method, "Is", "To", 1 )
             _Method := RegExReplace( _Method, "([A-Z])", " $1" )
             _Method := LTrim( StrLower( _Method ) )
-            _Params := _Params.Length ? Expect.Printable( _Params[ 1 ] ) : ""
+            _Params := _Params.Length ? Printable( _Params[ 1 ] ).Bold() : ""
 
-            throw Error( Trim( Format( "Expected {1} {2} {3}", Expect.Printable( this.Comparable.Value ), _Method, _Params ) ) )
+            throw Error( Trim( Format( "Expected {1} {2} {3}", Printable( this.Comparable.Value ).Bold(), _Method, _Params ) ) )
         }
 
         return this
-    }
-
-
-    static Printable( _Data ) {
-        expected := Comparable( _Data )
-
-        if ( expected.IsType( "Object" ) || expected.IsType( "Array" ) || expected.IsType( "Map" ) ) {
-            return JSONStringify( _Data )
-        }
-
-        return _Data
     }
 }

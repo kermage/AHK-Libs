@@ -6,6 +6,7 @@ Function:
 */
 
 #Include <Expect>
+#Include <Printable>
 
 class Test {
     __New( _Name, _Expectations* ) {
@@ -51,9 +52,9 @@ class Test {
         __Call( _Method, _Params ) {
             this.Test.Add(
                 "",
-                Expect.Printable( this.ID ? this.ID : this.Value ),
+                Printable( this.ID ? this.ID : this.Value ).Normal(),
                 _Method,
-                _Params.Length ? Expect.Printable( _Params[ 1 ] ) : ""
+                _Params.Length ? Printable( _Params[ 1 ] ).Normal() : ""
             )
 
             _Index := this.Test.GetCount()
