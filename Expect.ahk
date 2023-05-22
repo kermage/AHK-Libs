@@ -24,9 +24,8 @@ class Expect
 
         if ( ! ObjBindMethod( this.Comparable, MethodName, _Params* )() ) {
             _Method := StrReplace( _Method, "Is", "To", 1 )
-            _Method := StrReplace( _Method, "To", "to ", 1 )
-            _Method := StrReplace( _Method, "to Be", "to be ", 1 )
-            _Method := RTrim( StrLower( _Method ) )
+            _Method := RegExReplace( _Method, "([A-Z])", " $1" )
+            _Method := LTrim( StrLower( _Method ) )
             _Params := _Params.Length ? Expect.Printable( _Params[ 1 ] ) : ""
 
             throw Error( Trim( Format( "Expected {1} {2} {3}", Expect.Printable( this.Comparable.Value ), _Method, _Params ) ) )
