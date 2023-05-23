@@ -6,31 +6,30 @@ Function:
 */
 
 ParseArguments() {
-    argv := []
+    argv := Map()
 
-    Loop % A_Args.Length()
+    Loop A_Args.Length
     {
         argument := A_Args[ A_Index ]
-        switch := SubStr( argument, 1, 1 )
 
-        if switch not in -,/
+        if ( SubStr( argument, 1, 1 ) != "-" && SubStr( argument, 1, 1 ) != "/" ) {
             continue
-
-        index := A_Index
-        key := SubStr( argument, 2 )
-        value := A_Args[ ++index ]
-
-        if ( SubStr( key, 1, 1 ) == "-" ) {
-            key := SubStr( key, 2 )
         }
 
-        temp := StrSplit( key, "=",, 2 )
+        key := SubStr( argument, 2 )
+        value := A_Index + 1 > A_Args.Length ? "" : A_Args[ A_Index + 1 ]
+
+        if ( SubStr( argument, 1, 1 ) == "-" && SubStr( key, 1, 1 ) == "-" ) {
+            key := SubStr( key, 2 )
+        }
 
         if ( ! value || SubStr( value, 1, 1 ) == "-" || SubStr( value, 1, 1 ) == "/" ) {
             value := true
         }
 
-        if ( temp[2] ) {
+        temp := StrSplit( key, "=",, 2 )
+
+        if ( temp.Has( 2 ) ) {
             key := temp[1]
             value := temp[2]
         }
