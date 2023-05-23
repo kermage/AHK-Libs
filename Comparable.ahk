@@ -92,7 +92,7 @@ class Comparable
             props := this.IsObject() ? this.Value.OwnProps() : this.Value
 
             for index, value in props {
-                if ( Comparable( this.IsArray() ? value : index ).Is( _Expected ) ) {
+                if ( Comparable( index ).Is( _Expected ) ) {
                     return true
                 }
             }
