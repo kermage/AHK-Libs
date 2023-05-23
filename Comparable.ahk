@@ -66,8 +66,8 @@ class Comparable
         return _Strict ? ( this.IsInt( true ) || this.IsFloat( true ) ) : IsNumber( this.Value )
     }
 
-    IsObject() {
-        return this.IsType( "Object" )
+    IsObject( _Strict := true ) {
+        return _Strict ? this.IsType( "Object" ) : IsObject( this.Value )
     }
 
     IsArray() {
