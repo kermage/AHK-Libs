@@ -50,21 +50,18 @@ class Test {
         }
 
         __Call( _Method, _Params ) {
-            this.Test.Add(
-                "",
-                Printable( this.ID ? this.ID : this.Value ).Normal(),
-                _Method,
-                _Params.Length ? Printable( _Params[ 1 ] ).Normal() : ""
-            )
+            _Have := Printable( this.ID ? this.ID : this.Value ).Normal()
+            _Want := _Params.Length ? Printable( _Params[ 1 ] ).Normal() : ""
+            _Index := this.Test.GetCount() + 1
 
-            _Index := this.Test.GetCount()
+            this.Test.Add( "", _Have, _Method, _Want )
 
             try {
                 ObjBindMethod( Expect( this.Value ), _Method, _Params* )()
                 this.Test.Modify( _Index, "Col4", "OK" )
-            } catch Error as e {
-                this.Test.Modify( _Index, "Col4", "Failed" )
-                this.Test.Messages[ _Index ] := e.Message
+            } catch {
+                this.Test.Modify( _Index, "Col4", "FAILED" )
+                this.Test.Messages[ _Index ] := Format( "{1} {2} {3}", Printable( _Have ).Bold(), Expect.ToWords( _Method ), Printable( _Want ).Bold() )
             }
 
             return this
