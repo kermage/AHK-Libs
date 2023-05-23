@@ -88,8 +88,8 @@ class Comparable
 
 
     ToHave( _Expected ) {
-        if ( this.IsObject() || this.IsEnumerable() ) {
-            props := this.IsObject() ? this.Value.OwnProps() : this.Value
+        if ( this.IsObject( false ) ) {
+            props := this.IsEnumerable() ? this.Value : this.Value.OwnProps()
 
             for index, value in props {
                 if ( Comparable( index ).Is( _Expected ) ) {
@@ -104,8 +104,8 @@ class Comparable
     }
 
     ToContain( _Expected ) {
-        if ( this.IsObject() || this.IsEnumerable() ) {
-            props := this.IsObject() ? this.Value.OwnProps() : this.Value
+        if ( this.IsObject( false ) ) {
+            props := this.IsEnumerable() ? this.Value : this.Value.OwnProps()
 
             for index, value in props {
                 if ( Comparable( value ).Is( _Expected ) ) {
@@ -123,7 +123,7 @@ class Comparable
     ToEqual( _Expected ) {
         expected := Comparable( _Expected )
 
-        if ( this.IsAssociative() && expected.IsAssociative() ) {
+        if ( this.IsObject( false ) ) {
             return expected.ToContainEqual( this.Value )
         }
 
@@ -134,11 +134,11 @@ class Comparable
         _Value := Comparable( this.Value )
         expected := Comparable( _Expected )
 
-        if ( ! this.IsAssociative() || ! expected.IsAssociative() ) {
+        if ( ! this.IsObject( false ) || ! expected.IsObject( false ) ) {
             return false
         }
 
-        props := expected.IsObject() ? _Expected.OwnProps() : _Expected
+        props := expected.IsEnumerable() ? _Expected : _Expected.OwnProps()
 
         for index, value in props {
             if ( _Value.ToHave( index ) && _Value.ToContain( value ) ) {
