@@ -7,7 +7,7 @@ Function:
 
 JSONStringify( _Data ) {
     Escape( _Value ) {
-        Quote := Chr( 34 )
+        static Quote := Chr( 34 )
         _Value := StrReplace( _Value, Quote, "\" . Quote )
 
         _Value := StrReplace( _Value, "`n", "\n" )
@@ -21,8 +21,10 @@ JSONStringify( _Data ) {
     }
 
     if ( IsObject( _Data ) ) {
-        dType := Type( _Data )
-        output := ""
+        local dType := Type( _Data )
+        local output := ""
+
+        local key, value
 
         for key, value in ( dType == "Array" || dType == "Map" ) ? _Data : _Data.OwnProps() {
             output .= dType == "Array" ? "" : ( Escape( key ) . ":" ) ; key

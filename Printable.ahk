@@ -34,10 +34,10 @@ class Printable {
 
 
     _Print( _Upper, _Lower, _Numeric := "" ) {
-        output := ""
+        local output := ""
 
         Loop Parse this.Normal() {
-            character := Ord( A_LoopField )
+            local character := Ord( A_LoopField )
 
             if ( character >= 0x41 && character <= 0x5A ) {
                 character += ( _Upper - 0x41 )

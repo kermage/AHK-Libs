@@ -10,7 +10,7 @@ RunAsAdmin() {
         return
     }
 
-    _Params := ""
+    local _Params := ""
 
     Loop A_Args.Length {
         _Params .= A_Space . A_Args[ A_Index ]

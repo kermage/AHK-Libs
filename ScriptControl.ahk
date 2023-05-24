@@ -7,16 +7,14 @@ Function:
 
 class ScriptControl {
     __New( _PID ) {
+        local _DetectHiddenWindows := DetectHiddenWindows( true )
+
         this.PID := _PID
-        _DetectHiddenWindows := A_DetectHiddenWindows
-
-        OnMessage( 0x004A, ObjBindMethod( this, "Receive" ) )
-        DetectHiddenWindows( true )
-
         this.cPID := WinGetPID( "ahk_id " A_ScriptHwnd )
         this.gotValue := ""
 
         DetectHiddenWindows( _DetectHiddenWindows )
+        OnMessage( 0x004A, ObjBindMethod( this, "Receive" ) )
     }
 
 	call( _Name, _Params* ) {
@@ -36,7 +34,8 @@ class ScriptControl {
     }
 
     Compose( _Params* ) {
-        Message := ""
+        local index, param
+        local Message := ""
 
         for index, param in _Params
             Message .= StrReplace( param, ";", ";;" ) " `;#; "
@@ -45,8 +44,8 @@ class ScriptControl {
     }
 
     Send( _String, _PID ) {
-        SizeBytes := ( StrLen( _String ) + 1 ) * 2
-        CopyDataStruct := Buffer( 3 * A_PtrSize + SizeBytes, 0 )
+        local SizeBytes := ( StrLen( _String ) + 1 ) * 2
+        local CopyDataStruct := Buffer( 3 * A_PtrSize + SizeBytes, 0 )
 
         NumPut( "UPtr", SizeBytes, CopyDataStruct, A_PtrSize )
         NumPut( "UPtr", StrPtr( _String ), CopyDataStruct, 2 * A_PtrSize )

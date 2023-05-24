@@ -6,18 +6,18 @@ Function:
 */
 
 ParseArguments() {
-    argv := Map()
+    local argv := Map()
 
     Loop A_Args.Length
     {
-        argument := A_Args[ A_Index ]
+        local argument := A_Args[ A_Index ]
 
         if ( SubStr( argument, 1, 1 ) != "-" && SubStr( argument, 1, 1 ) != "/" ) {
             continue
         }
 
-        key := SubStr( argument, 2 )
-        value := A_Index + 1 > A_Args.Length ? "" : A_Args[ A_Index + 1 ]
+        local key := SubStr( argument, 2 )
+        local value := A_Index + 1 > A_Args.Length ? "" : A_Args[ A_Index + 1 ]
 
         if ( SubStr( argument, 1, 1 ) == "-" && SubStr( key, 1, 1 ) == "-" ) {
             key := SubStr( key, 2 )
@@ -27,7 +27,7 @@ ParseArguments() {
             value := true
         }
 
-        temp := StrSplit( key, "=",, 2 )
+        local temp := StrSplit( key, "=",, 2 )
 
         if ( temp.Has( 2 ) ) {
             key := temp[1]

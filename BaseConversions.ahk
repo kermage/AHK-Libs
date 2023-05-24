@@ -14,12 +14,12 @@ BaseToDec( _Number, _Base := 16 ) {
         return ""
     }
 
-    result := 0
-    multiplier := 1
+    local result := 0
+    local multiplier := 1
 
     Loop Parse, _Number
     {
-        digit := Ord( A_LoopField )
+        local digit := Ord( A_LoopField )
 
         if ( digit >= 48 && digit <= 57 ) {
             digit := digit - 48
@@ -51,10 +51,10 @@ DecToBase( _Number, _Base := 16 ) {
         return ""
     }
 
-    result := ""
+    local result := ""
 
     while ( _Number > 0 ) {
-        remainder := Mod( _Number, _Base )
+        local remainder := Mod( _Number, _Base )
         _Number := ( _Number - remainder ) / _Base
 
         if ( remainder < 10 ) {

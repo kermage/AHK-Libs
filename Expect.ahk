@@ -15,6 +15,8 @@ class Expect
     }
 
     __Call( _Method, _Params ) {
+        local MethodName
+
         MethodName := StrReplace( _Method, "Is", "_" )
         MethodName := StrReplace( MethodName, "ToBe", "Is" )
 

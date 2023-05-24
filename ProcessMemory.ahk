@@ -21,7 +21,7 @@ class ProcessMemory {
     }
 
     Read( _Address, _Type := "UInt", _Length := 4 ) {
-        _Value := 0
+        local _Value := 0
 
         DllCall( "ReadProcessMemory", "Ptr", this.HWND, "Ptr", _Address, _Type "*", &_Value, "Ptr", _Length, "Ptr", this.BytesRead )
 
@@ -29,7 +29,7 @@ class ProcessMemory {
     }
 
     Read_String( _Address, _Length := 4 ) {
-        _Buffer := Buffer( _Length, 0 )
+        local _Buffer := Buffer( _Length, 0 )
 
         DllCall( "ReadProcessMemory", "Ptr", this.HWND, "Ptr", _Address, "Ptr", _Buffer, "Ptr", _Length, "Ptr", this.BytesRead )
 
@@ -41,7 +41,7 @@ class ProcessMemory {
     }
 
     Write_String( _Address, _Value, _Length := 4 ) {
-        _Buffer := Buffer( _Length, 0 )
+        local _Buffer := Buffer( _Length, 0 )
 
         StrPut( _Value, &_Buffer, StrLen( _Value ) + 1, "UTF-8" )
 
@@ -49,6 +49,8 @@ class ProcessMemory {
     }
 
     Pointer( _Base, _Type := "UInt", _Offsets* ) {
+        local index, offset
+
         for index, offset in _Offsets
             _Base := this.Read( _Base, _Type ) + offset
 
