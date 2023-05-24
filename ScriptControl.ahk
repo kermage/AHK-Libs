@@ -11,15 +11,12 @@ class ScriptControl {
         _DetectHiddenWindows := A_DetectHiddenWindows
 
         OnMessage( 0x004A, ObjBindMethod( this, "Receive" ) )
-        DetectHiddenWindows, On
-        WinGet, cPID, PID, % "ahk_id " A_ScriptHwnd
-        DetectHiddenWindows, % _DetectHiddenWindows
+        DetectHiddenWindows( true )
 
-        this.cPID := cPID
-    }
+        this.cPID := WinGetPID( "ahk_id " A_ScriptHwnd )
+        this.gotValue := ""
 
-	run( _Name ) {
-        return this.Send( this.Compose( "run", _Name ), this.PID )
+        DetectHiddenWindows( _DetectHiddenWindows )
     }
 
 	call( _Name, _Params* ) {
@@ -48,33 +45,30 @@ class ScriptControl {
     }
 
     Send( _String, _PID ) {
-        SizeBytes := ( StrLen( _String ) + 1 ) * ( A_IsUnicode ? 2 : 1 )
+        SizeBytes := ( StrLen( _String ) + 1 ) * 2
+        CopyDataStruct := Buffer( 3 * A_PtrSize + SizeBytes, 0 )
 
-        VarSetCapacity( CopyDataStruct, 3 * A_PtrSize + SizeBytes, 0 )
-        NumPut( SizeBytes, CopyDataStruct, A_PtrSize )
-        NumPut( &_String, CopyDataStruct, 2 * A_PtrSize )
+        NumPut( "UPtr", SizeBytes, CopyDataStruct, A_PtrSize )
+        NumPut( "UPtr", StrPtr( _String ), CopyDataStruct, 2 * A_PtrSize )
 
-        SendMessage, 0x004A, 0, &CopyDataStruct,, % "ahk_pid " _PID,,,, 0
-
-        return ErrorLevel
+        return SendMessage( 0x004A, 0, CopyDataStruct,, "ahk_pid " _PID,,,, 0 )
     }
 
-    Receive( wParam, lParam ) {
-        Local Params, index, param, Action, value
+    Receive( wParam, lParam, msg, hwnd ) {
+        global
+        local Params, index, param, Action, value
 
-        Params := StrSplit( StrGet( NumGet( lParam + 2 * A_PtrSize ) ), " `;#; " )
+        Params := StrSplit( StrGet( NumGet( lParam, 2 * A_PtrSize, "UPtr" ) ), " `;#; " )
 
         for index, param in Params
             Params[ index ] := StrReplace( param, ";;", ";" )
 
         Action := Params.RemoveAt( 1 )
 
-        if ( "run" == Action && IsLabel( Params[1] ) ) {
-            Gosub, % Params[1]
-        } else if ( "call" == Action && IsFunc( Params[1] ) ) {
+        if ( "call" == Action && Type( %Params[1]% ) == "Func" ) {
             Action := Params.RemoveAt( 1 )
             index := Params.RemoveAt( 1 )
-            value := Func( Action ).Call( Params* )
+            value := %Action%.Call( Params* )
 
             this.Send( this.Compose( "callback", value ), index )
         } else if ( "get" == Action ) {
