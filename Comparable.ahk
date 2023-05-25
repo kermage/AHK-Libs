@@ -110,7 +110,7 @@ class Comparable
             local props := this.IsEnumerable() ? this.Value : this.Value.OwnProps()
 
             for index, value in props {
-                if ( Comparable( value ).Is( _Expected ) ) {
+                if ( Comparable( value ).ToEqual( _Expected ) ) {
                     return true
                 }
             }
