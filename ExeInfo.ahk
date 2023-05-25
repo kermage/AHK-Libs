@@ -6,10 +6,26 @@ Function:
 */
 
 class ExeInfo {
+    static Remarks := [
+    	"Comments",
+    	"InternalName",
+    	"ProductName",
+    	"CompanyName",
+    	"LegalCopyright",
+    	"ProductVersion",
+    	"FileDescription",
+    	"LegalTrademarks",
+    	"PrivateBuild",
+    	"FileVersion",
+    	"OriginalFilename",
+    	"SpecialBuild",
+    ]
+
 	__New( _File ) {
 		local InfoSize := DllCall( "version\GetFileVersionInfoSize", "Str", _File, "UInt*", 0, "UInt" )
 		local Translation := 0
 
+        this.InfoValues := Map()
 		this.VersionInfo := Buffer( InfoSize )
 
 		DllCall( "version\GetFileVersionInfo", "Str", _File, "UInt", 0, "UInt", InfoSize, "Ptr", this.VersionInfo )
@@ -19,11 +35,17 @@ class ExeInfo {
 	}
 
 	__Get( _Name, _Params ) {
+        if ( this.InfoValues.Has( _Name ) ) {
+            return this.InfoValues[ _Name ]
+        }
+
 		local Field := 0
 		local Encoding := 0
 
 		DllCall( "version\VerQueryValue", "Ptr", this.VersionInfo, "Str", "\StringFileInfo\" this.ID "\" _Name, "Ptr*", &Field, "UInt*", &Encoding )
 
-		return StrGet( Field, Encoding )
+		this.InfoValues[ _Name ] := StrGet( Field, Encoding )
+
+        return this.InfoValues[ _Name ]
 	}
 }
