@@ -142,6 +142,11 @@ class Comparable
 
         local index, value
         local props := expected.IsEnumerable() ? _Expected : _Expected.OwnProps()
+        local count := expected.IsMap() ? props.Count : ( expected.IsArray() ? props.Length : ObjOwnPropCount( expected ) )
+
+        if ( ! count ) {
+            return false
+        }
 
         for index, value in props {
             if ( _Value.ToHave( index ) && _Value.ToContain( value ) ) {

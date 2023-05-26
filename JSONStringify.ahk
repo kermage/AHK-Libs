@@ -26,7 +26,7 @@ JSONStringify( _Data ) {
 
         local key, value
 
-        for key, value in ( dType == "Array" || dType == "Map" ) ? _Data : _Data.OwnProps() {
+        for key, value in ( dType == "Array" || dType == "Map" || dType == "Enumerator" ) ? _Data : _Data.OwnProps() {
             output .= dType == "Array" ? "" : ( Escape( key ) . ":" ) ; key
             output .= JSONStringify( value ) . ","                    ; value
         }
