@@ -24,7 +24,7 @@ class Test {
         LV.GetPos( &x, &y, &w, &h )
 
         w := x / 2
-        h := LV.GetCount() * 20
+        h := ( LV.GetCount() + 4 ) * 16
 
         Loop Headers.Length {
             LV.ModifyCol( A_Index, "AutoHDR" )
@@ -59,9 +59,14 @@ class Test {
             try {
                 ObjBindMethod( Expect( this.Value ), _Method, _Params* )()
                 this.Test.Modify( _Index, "Col4", "OK" )
-            } catch {
+            } catch Error as e {
                 this.Test.Modify( _Index, "Col4", "FAILED" )
-                this.Test.Messages[ _Index ] := Format( "{1} {2} {3}", Printable( _Have ).Bold(), Expect.ToWords( _Method ), Printable( _Want ).Bold() )
+
+                if ( InStr( e.Message, "Expected", true ) == 1 ) {
+                    this.Test.Messages[ _Index ] := Format( "{1} {2} {3}", Printable( _Have ).Bold(), Expect.ToWords( _Method ), Printable( _Want ).Bold() )
+                } else {
+                    this.Test.Messages[ _Index ] := StrReplace( e.Message, _Method, Printable( _Method ).Bold() )
+                }
             }
 
             return this
