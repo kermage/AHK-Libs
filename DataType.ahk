@@ -74,6 +74,7 @@ class DataType {
         local index, value, size := 0
 
         for index, value in _Data.OwnProps() {
+            value := StrReplace( value, A_Space, "_" )
             size += this.Data[ index ] := DataType.%value%
         }
 

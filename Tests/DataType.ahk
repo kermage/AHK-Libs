@@ -6,8 +6,8 @@
 
 STRUCT := {
     data1: "unsigned_long",
-    data2: "long_double",
-    data3: "signed_short",
+    data2: "long double",
+    data3: "signed short",
 }
 
 DataStruct := DataType( STRUCT )
