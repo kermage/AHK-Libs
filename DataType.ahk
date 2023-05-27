@@ -66,4 +66,50 @@ class DataType {
     static signed_long_long_int := 8
     static unsigned_long_long := 8
     static unsigned_long_long_int := 8
+
+
+    __New( _Data ) {
+        this.Data := Map()
+
+        local index, value, size := 0
+
+        for index, value in _Data.OwnProps() {
+            size += this.Data[ index ] := DataType.%value%
+        }
+
+        this.Buffer := Buffer( size )
+    }
+
+
+    Size( _Field ) {
+        return this.Data[ _Field ]
+    }
+
+    Offset( _Field ) {
+        local index, value, offset := 0
+
+        for index, value in this.Data {
+            if ( _Field == index ) {
+                break
+            }
+
+            offset += value
+        }
+
+        return offset
+    }
+
+    Address( _Field ) {
+        local index, value, address := this.Buffer.Ptr
+
+        for index, value in this.Data {
+            address += value
+
+            if ( _Field == index ) {
+                break
+            }
+        }
+
+        return address
+    }
 }
