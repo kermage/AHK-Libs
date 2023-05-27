@@ -6,7 +6,12 @@ Function:
 */
 
 JSONParse( _String ) {
-    static HTML := ComObject( "HTMLFile" )
+    static HTML := ""
+
+    if ( HTML == "" ) {
+        HTML := ComObject( "HTMLFile" )
+        HTML.write( "<meta http-equiv='X-UA-Compatible' content='IE=edge'>" )
+    }
 
     Type( _Value ) {
         return HTML.parentWindow.Object.prototype.toString.call( _Value )

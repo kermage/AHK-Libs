@@ -6,9 +6,12 @@ Function:
 */
 
 BuildQuery( _Data ) {
-    static HTML := ComObject( "HTMLFile" )
+    static HTML := ""
 
-    HTML.write( "<meta http-equiv='X-UA-Compatible' content='IE=edge'>" )
+    if ( HTML == "" ) {
+        HTML := ComObject( "HTMLFile" )
+        HTML.write( "<meta http-equiv='X-UA-Compatible' content='IE=edge'>" )
+    }
 
     Encode( _Value ) {
         return HTML.parentWindow.encodeURIComponent( _Value )
