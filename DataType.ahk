@@ -87,10 +87,14 @@ class DataType {
             return this.Buffer.Size
         }
 
-        return this.Data[ _Field ]
+        return this.Data.Has( _Field ) ? this.Data[ _Field ] : 0
     }
 
     Offset( _Field ) {
+        if ( ! this.Size( _Field ) ) {
+            return -1
+        }
+
         local index, value, offset := 0
 
         for index, value in this.Data {
@@ -107,6 +111,10 @@ class DataType {
     Address( _Field := "" ) {
         if ( _Field == "" ) {
             return this.Buffer.Ptr
+        }
+
+        if ( ! this.Size( _Field ) ) {
+            return 0
         }
 
         local index, value, address := this.Buffer.Ptr
