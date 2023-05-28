@@ -8,7 +8,6 @@ Function:
 #Include <DataType>
 
 class WinSock {
-    static REQ_VERSION := 0x0202
     static WM_NUMBER := 0x400
     static FD_READ := 1
     static FD_WRITE := 2
@@ -20,22 +19,22 @@ class WinSock {
         this.Socket := _Socket
     }
 
-    static Startup() {
+    static Startup( _VersionRequired := 0x0202 ) {
         local Data := DataType( {
             aVersion: "unsigned short",
             bHighVersion: "unsigned short",
             clpVendorInfo: "char",
         } )
 
-        local Result := DllCall( "Ws2_32\WSAStartup", "UShort", WinSock.REQ_VERSION, "Ptr", Data.Buffer )
+        local Result := DllCall( "Ws2_32\WSAStartup", "UShort", _VersionRequired, "Ptr", Data.Buffer )
 
         if ( Result ) {
             throw Error( "WSAStartup() errored out", -1, Result )
         }
     }
 
-    static Create() {
-        local Socket := DllCall( "Ws2_32\socket", "Int", 2, "Int", 1, "Int", 6 )
+    static Create( _Type := 1, _Protocol := 6, _AddressFamily := 2 ) {
+        local Socket := DllCall( "Ws2_32\socket", "Int", _AddressFamily, "Int", _Type, "Int", _Protocol )
 
         if ( Socket == -1 ) {
             throw Error( "socket() returned invalid descriptor", -1, WinSock.LastError() )
@@ -48,7 +47,7 @@ class WinSock {
         return DllCall( "Ws2_32\WSAGetLastError" )
     }
 
-    static Cleanup() {
+    static Cleanup(*) {
         if ( DllCall( "Ws2_32\WSACleanup" ) ) {
             throw Error( "Unsuccessful WSACleanup()", -1, WinSock.LastError() )
         }
@@ -138,7 +137,11 @@ class WinSock {
             return ""
         }
 
-        local Data := Buffer( _Length ? _Length : this.ToRead() )
+        if ( ! _Length ) {
+            _Length := this.ToRead()
+        }
+
+        local Data := Buffer( _Length )
         local Result := DllCall( "Ws2_32\recv", "UInt", this.Socket, "Ptr", Data, "Int", _Length, "Int", 0 )
 
         if ( Result == -1 ) {
