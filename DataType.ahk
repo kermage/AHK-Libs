@@ -82,7 +82,11 @@ class DataType {
     }
 
 
-    Size( _Field ) {
+    Size( _Field := "" ) {
+        if ( _Field == "" ) {
+            return this.Buffer.Size
+        }
+
         return this.Data[ _Field ]
     }
 
@@ -100,7 +104,11 @@ class DataType {
         return offset
     }
 
-    Address( _Field ) {
+    Address( _Field := "" ) {
+        if ( _Field == "" ) {
+            return this.Buffer.Ptr
+        }
+
         local index, value, address := this.Buffer.Ptr
 
         for index, value in this.Data {
