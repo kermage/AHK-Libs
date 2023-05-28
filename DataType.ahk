@@ -88,19 +88,23 @@ class DataType {
 
         this.Data := Map()
 
-        local index, value, size := 0
+        local index, value
 
         for index, value in _Data.OwnProps() {
-            size += this.Data[ index ] := Parse( value )
+            this.Data[ index ] := Parse( value )
         }
-
-        this.Buffer := Buffer( size )
     }
 
 
     Size( _Field := "" ) {
         if ( _Field == "" ) {
-            return this.Buffer.Size
+            local index, value, size := 0
+
+            for index, value in this.Data {
+                size += value
+            }
+
+            return size
         }
 
         return this.Data.Has( _Field ) ? this.Data[ _Field ] : 0
@@ -122,27 +126,5 @@ class DataType {
         }
 
         return offset
-    }
-
-    Address( _Field := "" ) {
-        if ( _Field == "" ) {
-            return this.Buffer.Ptr
-        }
-
-        if ( ! this.Size( _Field ) ) {
-            return 0
-        }
-
-        local index, value, address := this.Buffer.Ptr
-
-        for index, value in this.Data {
-            address += value
-
-            if ( _Field == index ) {
-                break
-            }
-        }
-
-        return address
     }
 }
