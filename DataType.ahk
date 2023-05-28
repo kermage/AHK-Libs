@@ -70,6 +70,10 @@ class DataType {
 
     __New( _Data ) {
         Parse( _Value ) {
+            if ( IsNumber( _Value ) ) {
+                return _Value
+            }
+
             _Value := StrReplace( _Value, A_Space, "_" )
             local maybeMax := StrSplit( _Value, "_" )[ 1 ]
 
