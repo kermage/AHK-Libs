@@ -69,13 +69,25 @@ class DataType {
 
 
     __New( _Data ) {
+        Parse( _Value ) {
+            _Value := StrReplace( _Value, A_Space, "_" )
+            local maybeMax := StrSplit( _Value, "_" )[ 1 ]
+
+            if ( IsNumber( maybeMax ) ) {
+                _Value := StrReplace( _Value, maybeMax "_", "" )
+            } else {
+                maybeMax := 1
+            }
+
+            return DataType.%_Value% * maybeMax
+        }
+
         this.Data := Map()
 
         local index, value, size := 0
 
         for index, value in _Data.OwnProps() {
-            value := StrReplace( value, A_Space, "_" )
-            size += this.Data[ index ] := DataType.%value%
+            size += this.Data[ index ] := Parse( value )
         }
 
         this.Buffer := Buffer( size )
