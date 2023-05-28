@@ -87,6 +87,7 @@ class DataType {
         }
 
         this.Data := Map()
+        this.Ptr := 0
 
         local index, value
 
@@ -96,22 +97,24 @@ class DataType {
     }
 
 
-    Size( _Field := "" ) {
-        if ( _Field == "" ) {
-            local index, value, size := 0
+    Size[ _Field := "" ] {
+        get {
+            if ( _Field == "" ) {
+                local index, value, size := 0
 
-            for index, value in this.Data {
-                size += value
+                for index, value in this.Data {
+                    size += value
+                }
+
+                return size
             }
 
-            return size
+            return this.Data.Has( _Field ) ? this.Data[ _Field ] : 0
         }
-
-        return this.Data.Has( _Field ) ? this.Data[ _Field ] : 0
     }
 
     Offset( _Field ) {
-        if ( ! this.Size( _Field ) ) {
+        if ( ! this.Size[ _Field ] ) {
             return -1
         }
 
