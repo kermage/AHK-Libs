@@ -105,6 +105,24 @@ class WinSock {
         OnMessage( WinSock.WM_NUMBER, ObjBindMethod( this, "WM_USER" ) )
     }
 
+    Connect( _Host, _Port, _Callback ) {
+        local Address := this.GetAddress( _Host, _Port )
+
+        if ( DllCall( "Ws2_32\connect", "UInt", this.Socket, "Ptr", NumGet( Address, Address.Offset( "g_ai_addr" ), "UPtr" ), "UInt", NumGet( Address, Address.Offset( "e_ai_addrlen" ), "UPtr" ) ) ) {
+            throw Error( "Unsuccessful socket connect()", -1, WinSock.LastError() )
+        }
+
+        DllCall( "Ws2_32\FreeAddrInfoW", "Ptr", Address.Ptr )
+
+        if ( DllCall( "Ws2_32\WSAAsyncSelect", "UInt", this.Socket, "UInt", A_ScriptHwnd, "UInt", WinSock.WM_NUMBER, "Int", WinSock.FD_READ | WinSock.FD_CLOSE ) ) {
+            throw Error( "Unsuccessful WSAAsyncSelect()", -1, WinSock.LastError() )
+        }
+
+        this.OnReceive := _Callback
+
+        OnMessage( WinSock.WM_NUMBER, ObjBindMethod( this, "WM_USER" ) )
+    }
+
     WM_USER( wParam, lParam, msg, hwnd ) {
         if ( wParam != this.Socket || msg != WinSock.WM_NUMBER || hwnd != A_ScriptHwnd ) {
             return
@@ -122,6 +140,8 @@ class WinSock {
             }
 
             this.OnAccept.Call( WinSock( Socket ) )
+        } else if ( lParam & WinSock.FD_READ ) {
+            this.OnReceive.Call( WinSock( wParam ) )
         }
     }
 
