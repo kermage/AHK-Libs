@@ -43,6 +43,12 @@ class WinSock {
         return WinSock( Socket )
     }
 
+    static Notify( _Socket, _Event ) {
+        if ( DllCall( "Ws2_32\WSAAsyncSelect", "UInt", _Socket, "UInt", A_ScriptHwnd, "UInt", WinSock.WM_NUMBER, "Int", _Event ) ) {
+            throw Error( "Unsuccessful WSAAsyncSelect()", -1, WinSock.LastError() )
+        }
+    }
+
     static LastError() {
         return DllCall( "Ws2_32\WSAGetLastError" )
     }
@@ -57,7 +63,7 @@ class WinSock {
         this.Close()
     }
 
-    GetAddress( _Host, _Port ) {
+    Handle( _Action, _Host, _Port ) {
         local sockaddr := DataType( {
             a_sa_family: "short",
             b_sa_data: "16 char",
@@ -80,46 +86,32 @@ class WinSock {
 
         ADDRINFOW.Ptr := Data
 
-        return ADDRINFOW
+        if ( DllCall( "Ws2_32\" _Action, "UInt", this.Socket, "Ptr", NumGet( ADDRINFOW, ADDRINFOW.Offset( "g_ai_addr" ), "UPtr" ), "UInt", NumGet( ADDRINFOW, ADDRINFOW.Offset( "e_ai_addrlen" ), "UPtr" ) ) ) {
+            throw Error( Format( "Unsuccessful socket {1}()", _Action ), -1, WinSock.LastError() )
+        }
+
+        DllCall( "Ws2_32\FreeAddrInfoW", "Ptr", ADDRINFOW.Ptr )
     }
 
     Listen( _Host, _Port, _Callback ) {
-        local Address := this.GetAddress( _Host, _Port )
-
-        if ( DllCall( "Ws2_32\bind", "UInt", this.Socket, "Ptr", NumGet( Address, Address.Offset( "g_ai_addr" ), "UPtr" ), "UInt", NumGet( Address, Address.Offset( "e_ai_addrlen" ), "UPtr" ) ) ) {
-            throw Error( "Unsuccessful socket bind()", -1, WinSock.LastError() )
-        }
-
-        DllCall( "Ws2_32\FreeAddrInfoW", "Ptr", Address.Ptr )
+        this.Handle( "bind", _Host, _Port )
 
         if ( DllCall( "Ws2_32\listen", "UInt", this.Socket, "Str", "SOMAXCONN" ) ) {
             throw Error( "Unsuccessful socket listen()", -1, WinSock.LastError() )
         }
 
-        if ( DllCall( "Ws2_32\WSAAsyncSelect", "UInt", this.Socket, "UInt", A_ScriptHwnd, "UInt", WinSock.WM_NUMBER, "Int", WinSock.FD_ACCEPT | WinSock.FD_CLOSE ) ) {
-            throw Error( "Unsuccessful WSAAsyncSelect()", -1, WinSock.LastError() )
-        }
-
         this.OnAccept := _Callback
 
+        WinSock.Notify( this.Socket, WinSock.FD_ACCEPT | WinSock.FD_CLOSE )
         OnMessage( WinSock.WM_NUMBER, ObjBindMethod( this, "WM_USER" ) )
     }
 
     Connect( _Host, _Port, _Callback ) {
-        local Address := this.GetAddress( _Host, _Port )
-
-        if ( DllCall( "Ws2_32\connect", "UInt", this.Socket, "Ptr", NumGet( Address, Address.Offset( "g_ai_addr" ), "UPtr" ), "UInt", NumGet( Address, Address.Offset( "e_ai_addrlen" ), "UPtr" ) ) ) {
-            throw Error( "Unsuccessful socket connect()", -1, WinSock.LastError() )
-        }
-
-        DllCall( "Ws2_32\FreeAddrInfoW", "Ptr", Address.Ptr )
-
-        if ( DllCall( "Ws2_32\WSAAsyncSelect", "UInt", this.Socket, "UInt", A_ScriptHwnd, "UInt", WinSock.WM_NUMBER, "Int", WinSock.FD_READ | WinSock.FD_CLOSE ) ) {
-            throw Error( "Unsuccessful WSAAsyncSelect()", -1, WinSock.LastError() )
-        }
+        this.Handle( "connect", _Host, _Port )
 
         this.OnReceive := _Callback
 
+        WinSock.Notify( this.Socket, WinSock.FD_READ | WinSock.FD_CLOSE )
         OnMessage( WinSock.WM_NUMBER, ObjBindMethod( this, "WM_USER" ) )
     }
 
@@ -135,10 +127,7 @@ class WinSock {
                 throw Error( "accept() returned invalid descriptor", -1, WinSock.LastError() )
             }
 
-            if ( DllCall( "Ws2_32\WSAAsyncSelect", "UInt", Socket, "UInt", hwnd, "UInt", WinSock.WM_NUMBER, "Int", WinSock.FD_READ | WinSock.FD_CLOSE ) ) {
-                throw Error( "Unsuccessful WSAAsyncSelect()", -1, WinSock.LastError() )
-            }
-
+            WinSock.Notify( Socket, WinSock.FD_READ | WinSock.FD_CLOSE )
             this.OnAccept.Call( WinSock( Socket ) )
         } else if ( lParam & WinSock.FD_READ ) {
             this.OnReceive.Call( WinSock( wParam ) )
