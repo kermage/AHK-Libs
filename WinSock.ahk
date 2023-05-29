@@ -20,13 +20,13 @@ class WinSock {
     }
 
     static Startup( _VersionRequired := 0x0202 ) {
-        local Data := DataType( {
+        local WSADATA := DataType( {
             aVersion: "unsigned short",
             bHighVersion: "unsigned short",
             clpVendorInfo: "char",
         } )
-
-        local Result := DllCall( "Ws2_32\WSAStartup", "UShort", _VersionRequired, "Ptr", Data.Buffer )
+        local lpWSAData := Buffer( WSADATA.Size )
+        local Result := DllCall( "Ws2_32\WSAStartup", "UShort", _VersionRequired, "Ptr", lpWSAData )
 
         if ( Result ) {
             throw Error( "WSAStartup() errored out", -1, Result )
@@ -58,26 +58,39 @@ class WinSock {
     }
 
     GetAddress( _Host, _Port ) {
-        local Data := DataType( {
-            asin_family: "short",
-            bsin_port: "unsigned short",
-            csin_addr: "unsigned long",
-            csin_zero: "8 char",
+        local sockaddr := DataType( {
+            a_sa_family: "short",
+            b_sa_data: "16 char",
         } )
+        local ADDRINFOW := DataType( {
+            a_ai_flags: "int",
+            b_ai_family: "int",
+            c_ai_sockettype: "int",
+            d_ai_protocol: "int",
+            e_ai_addrlen: A_Is64bitOS ? "__int64" : "unsigned long",
+            ; f_ai_canonname: "wchar_t",
+            g_ai_addr: sockaddr.Size,
+        } )
+        local Data := 0
+        local Result := DllCall( "Ws2_32\GetAddrInfoW", "WStr", _Host, "WStr", _Port, "Ptr", 0, "Ptr*", &Data )
 
-        NumPut( "Short", 2, Data.Buffer, Data.Offset( "asin_family" ) )
-        NumPut( "UShort", DllCall( "Ws2_32\htons", "UShort", _Port ), Data.Buffer, Data.Offset( "bsin_port" ) )
-        NumPut( "UInt", DllCall( "Ws2_32\inet_addr", "Str", _Host ), Data.Buffer, Data.Offset( "csin_addr" ) )
+        if ( Result ) {
+            throw Error( "GetAddrInfoW() errored out", -1, Result )
+        }
 
-        return Data
+        ADDRINFOW.Ptr := Data
+
+        return ADDRINFOW
     }
 
     Listen( _Host, _Port, _Callback ) {
         local Address := this.GetAddress( _Host, _Port )
 
-        if ( DllCall( "Ws2_32\bind", "UInt", this.Socket, "Ptr", Address.Buffer, "UInt", Address.Size() ) ) {
+        if ( DllCall( "Ws2_32\bind", "UInt", this.Socket, "Ptr", NumGet( Address, Address.Offset( "g_ai_addr" ), "UPtr" ), "UInt", NumGet( Address, Address.Offset( "e_ai_addrlen" ), "UPtr" ) ) ) {
             throw Error( "Unsuccessful socket bind()", -1, WinSock.LastError() )
         }
+
+        DllCall( "Ws2_32\FreeAddrInfoW", "Ptr", Address.Ptr )
 
         if ( DllCall( "Ws2_32\listen", "UInt", this.Socket, "Str", "SOMAXCONN" ) ) {
             throw Error( "Unsuccessful socket listen()", -1, WinSock.LastError() )
