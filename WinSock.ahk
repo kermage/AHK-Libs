@@ -19,6 +19,11 @@ class WinSock {
         this.Socket := _Socket
     }
 
+    __Delete() {
+        this.Close()
+    }
+
+
     static Startup( _VersionRequired := 0x0202 ) {
         local WSADATA := DataType( {
             aVersion: "unsigned short",
@@ -59,9 +64,6 @@ class WinSock {
         }
     }
 
-    __Delete() {
-        this.Close()
-    }
 
     Handle( _Action, _Host, _Port ) {
         local sockaddr := DataType( {
@@ -116,6 +118,8 @@ class WinSock {
     }
 
     WM_USER( wParam, lParam, msg, hwnd ) {
+        local _Critical := Critical( "On" )
+
         if ( wParam != this.Socket || msg != WinSock.WM_NUMBER || hwnd != A_ScriptHwnd ) {
             return
         }
@@ -132,6 +136,8 @@ class WinSock {
         } else if ( lParam & WinSock.FD_READ ) {
             this.OnReceive.Call( WinSock( wParam ) )
         }
+
+        Critical( _Critical )
     }
 
     Send( _Value, _Encoding := "UTF-8" ) {
