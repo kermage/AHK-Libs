@@ -29,7 +29,7 @@ class WinSock {
     }
 
 
-    static Startup( _VersionRequired := 0x0202 ) {
+    static __New( _VersionRequired := 0x0202 ) {
         local WSADATA := DataType( {
             aVersion: "unsigned short",
             bHighVersion: "unsigned short",
@@ -40,6 +40,11 @@ class WinSock {
 
         if ( Result ) {
             throw Error( "WSAStartup() errored out", -1, Result )
+        }
+
+        if ( NumGet( lpWSAData, WSADATA.Offset( "bVersion" ), "UShort" ) < _VersionRequired ) {
+
+            throw Error( Format( "WinSock version {1} is not available", _VersionRequired ), -1 )
         }
 
         OnMessage( WinSock.WM_NUMBER, ObjBindMethod( this, "WM_USER" ) )
