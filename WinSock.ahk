@@ -14,13 +14,18 @@ class WinSock {
     static FD_ACCEPT := 8
     static FD_CLOSE := 32
     static FIONREAD := 0x4004667F
+    static Descriptors := Map()
 
     __New( _Socket ) {
         this.Socket := _Socket
+
+        WinSock.Descriptors[ _Socket ] := this
     }
 
     __Delete() {
-        this.Close()
+        if ( WinSock.Descriptors.Has( this.Socket ) ) {
+            this.Close()
+        }
     }
 
 
@@ -36,6 +41,8 @@ class WinSock {
         if ( Result ) {
             throw Error( "WSAStartup() errored out", -1, Result )
         }
+
+        OnMessage( WinSock.WM_NUMBER, ObjBindMethod( this, "WM_USER" ) )
     }
 
     static Create( _Type := 1, _Protocol := 6, _AddressFamily := 2 ) {
@@ -105,7 +112,6 @@ class WinSock {
         this.OnAccept := _Callback
 
         WinSock.Notify( this.Socket, WinSock.FD_ACCEPT | WinSock.FD_CLOSE )
-        OnMessage( WinSock.WM_NUMBER, ObjBindMethod( this, "WM_USER" ) )
     }
 
     Connect( _Host, _Port, _Callback ) {
@@ -114,13 +120,12 @@ class WinSock {
         this.OnReceive := _Callback
 
         WinSock.Notify( this.Socket, WinSock.FD_READ | WinSock.FD_CLOSE )
-        OnMessage( WinSock.WM_NUMBER, ObjBindMethod( this, "WM_USER" ) )
     }
 
-    WM_USER( wParam, lParam, msg, hwnd ) {
+    static WM_USER( wParam, lParam, msg, hwnd ) {
         local _Critical := Critical( "On" )
 
-        if ( wParam != this.Socket || msg != WinSock.WM_NUMBER || hwnd != A_ScriptHwnd ) {
+        if ( ! WinSock.Descriptors.Has( wParam ) || msg != WinSock.WM_NUMBER || hwnd != A_ScriptHwnd ) {
             return
         }
 
@@ -132,9 +137,9 @@ class WinSock {
             }
 
             WinSock.Notify( Socket, WinSock.FD_READ | WinSock.FD_CLOSE )
-            this.OnAccept.Call( WinSock( Socket ) )
+            WinSock.Descriptors[ wParam ].OnAccept.Call( WinSock( Socket ) )
         } else if ( lParam & WinSock.FD_READ ) {
-            this.OnReceive.Call( WinSock( wParam ) )
+            WinSock.Descriptors[ wParam ].OnReceive.Call( WinSock( wParam ) )
         }
 
         Critical( _Critical )
@@ -183,5 +188,7 @@ class WinSock {
         if ( DllCall( "Ws2_32\closesocket", "UInt", this.Socket ) ) {
             throw Error( "Unsuccessful closesocket()", -1, WinSock.LastError() )
         }
+
+        WinSock.Descriptors.Delete( this.Socket )
     }
 }
