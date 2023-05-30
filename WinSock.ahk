@@ -17,13 +17,13 @@ class WinSock {
     static Descriptors := Map()
 
     __New( _Socket ) {
-        this.Socket := _Socket
+        this.Descriptor := _Socket
 
         WinSock.Descriptors[ _Socket ] := this
     }
 
     __Delete() {
-        if ( WinSock.Descriptors.Has( this.Socket ) ) {
+        if ( WinSock.Descriptors.Has( this.Descriptor ) ) {
             this.Close()
         }
     }
@@ -70,12 +70,6 @@ class WinSock {
         return DllCall( "Ws2_32\WSAGetLastError" )
     }
 
-    static Cleanup(*) {
-        if ( DllCall( "Ws2_32\WSACleanup" ) ) {
-            throw Error( "Unsuccessful WSACleanup()", -1, WinSock.LastError() )
-        }
-    }
-
 
     Handle( _Action, _Host, _Port ) {
         local sockaddr := DataType( {
@@ -100,7 +94,7 @@ class WinSock {
 
         ADDRINFOW.Ptr := Data
 
-        if ( DllCall( "Ws2_32\" _Action, "UInt", this.Socket, "Ptr", NumGet( ADDRINFOW, ADDRINFOW.Offset( "g_ai_addr" ), "UPtr" ), "UInt", NumGet( ADDRINFOW, ADDRINFOW.Offset( "e_ai_addrlen" ), "UPtr" ) ) ) {
+        if ( DllCall( "Ws2_32\" _Action, "UInt", this.Descriptor, "Ptr", NumGet( ADDRINFOW, ADDRINFOW.Offset( "g_ai_addr" ), "UPtr" ), "UInt", NumGet( ADDRINFOW, ADDRINFOW.Offset( "e_ai_addrlen" ), "UPtr" ) ) ) {
             throw Error( Format( "Unsuccessful socket {1}()", _Action ), -1, WinSock.LastError() )
         }
 
@@ -110,13 +104,13 @@ class WinSock {
     Listen( _Host, _Port, _Callback ) {
         this.Handle( "bind", _Host, _Port )
 
-        if ( DllCall( "Ws2_32\listen", "UInt", this.Socket, "Str", "SOMAXCONN" ) ) {
+        if ( DllCall( "Ws2_32\listen", "UInt", this.Descriptor, "Str", "SOMAXCONN" ) ) {
             throw Error( "Unsuccessful socket listen()", -1, WinSock.LastError() )
         }
 
         this.OnAccept := _Callback
 
-        WinSock.Notify( this.Socket, WinSock.FD_ACCEPT | WinSock.FD_CLOSE )
+        WinSock.Notify( this.Descriptor, WinSock.FD_ACCEPT | WinSock.FD_CLOSE )
     }
 
     Connect( _Host, _Port, _Callback ) {
@@ -124,7 +118,7 @@ class WinSock {
 
         this.OnReceive := _Callback
 
-        WinSock.Notify( this.Socket, WinSock.FD_READ | WinSock.FD_CLOSE )
+        WinSock.Notify( this.Descriptor, WinSock.FD_READ | WinSock.FD_CLOSE )
     }
 
     static WM_USER( wParam, lParam, msg, hwnd ) {
@@ -153,7 +147,7 @@ class WinSock {
     Send( _Value, _Encoding := "UTF-8" ) {
         local Data := Buffer( StrPut( _Value, _Encoding ) )
         local Length := StrPut( _Value, Data, _Encoding )
-        local Result := DllCall( "Ws2_32\send", "UInt", this.Socket, "Ptr", Data, "Int", Length, "Int", 0 )
+        local Result := DllCall( "Ws2_32\send", "UInt", this.Descriptor, "Ptr", Data, "Int", Length, "Int", 0 )
 
         if ( Result == -1 ) {
             throw Error( "Unsuccessful send()", -1, WinSock.LastError() )
@@ -163,7 +157,7 @@ class WinSock {
 	ToRead() {
         local Data := Buffer( 4 )
 
-		if ( DllCall( "Ws2_32\ioctlsocket", "UInt", this.Socket, "Int", WinSock.FIONREAD, "Ptr", Data ) == -1 ) {
+		if ( DllCall( "Ws2_32\ioctlsocket", "UInt", this.Descriptor, "Int", WinSock.FIONREAD, "Ptr", Data ) == -1 ) {
             throw Error( "Unsuccessful ioctlsocket()", -1, WinSock.LastError() )
         }
 
@@ -180,7 +174,7 @@ class WinSock {
         }
 
         local Data := Buffer( _Length )
-        local Result := DllCall( "Ws2_32\recv", "UInt", this.Socket, "Ptr", Data, "Int", _Length, "Int", 0 )
+        local Result := DllCall( "Ws2_32\recv", "UInt", this.Descriptor, "Ptr", Data, "Int", _Length, "Int", 0 )
 
         if ( Result == -1 ) {
             throw Error( "Unsuccessful recv()", -1, WinSock.LastError() )
@@ -190,10 +184,10 @@ class WinSock {
     }
 
     Close() {
-        if ( DllCall( "Ws2_32\closesocket", "UInt", this.Socket ) ) {
+        if ( DllCall( "Ws2_32\closesocket", "UInt", this.Descriptor ) ) {
             throw Error( "Unsuccessful closesocket()", -1, WinSock.LastError() )
         }
 
-        WinSock.Descriptors.Delete( this.Socket )
+        WinSock.Descriptors.Delete( this.Descriptor )
     }
 }
