@@ -16,8 +16,10 @@ class WinSock {
     static FIONREAD := 0x4004667F
     static Descriptors := Map()
 
-    __New( _Socket ) {
+
+    __New( _Socket, _Callback ) {
         this.Descriptor := _Socket
+        this.Callback := _Callback
 
         WinSock.Descriptors[ _Socket ] := this
     }
@@ -50,14 +52,14 @@ class WinSock {
         OnMessage( WinSock.WM_NUMBER, ObjBindMethod( this, "WM_USER" ) )
     }
 
-    static Create( _Type := 1, _Protocol := 6, _AddressFamily := 2 ) {
+    static Create( _Callback, _Type := 1, _Protocol := 6, _AddressFamily := 2 ) {
         local Socket := DllCall( "Ws2_32\socket", "Int", _AddressFamily, "Int", _Type, "Int", _Protocol )
 
         if ( Socket == -1 ) {
             throw Error( "socket() returned invalid descriptor", -1, WinSock.LastError() )
         }
 
-        return WinSock( Socket )
+        return WinSock( Socket, _Callback )
     }
 
     static Notify( _Socket, _Event ) {
@@ -101,22 +103,18 @@ class WinSock {
         DllCall( "Ws2_32\FreeAddrInfoW", "Ptr", ADDRINFOW.Ptr )
     }
 
-    Listen( _Host, _Port, _Callback ) {
+    Listen( _Host, _Port ) {
         this.Handle( "bind", _Host, _Port )
 
         if ( DllCall( "Ws2_32\listen", "UInt", this.Descriptor, "Str", "SOMAXCONN" ) ) {
             throw Error( "Unsuccessful socket listen()", -1, WinSock.LastError() )
         }
 
-        this.OnAccept := _Callback
-
         WinSock.Notify( this.Descriptor, WinSock.FD_ACCEPT | WinSock.FD_CLOSE )
     }
 
-    Connect( _Host, _Port, _Callback ) {
+    Connect( _Host, _Port ) {
         this.Handle( "connect", _Host, _Port )
-
-        this.OnReceive := _Callback
 
         WinSock.Notify( this.Descriptor, WinSock.FD_READ | WinSock.FD_CLOSE )
     }
@@ -124,9 +122,11 @@ class WinSock {
     static WM_USER( wParam, lParam, msg, hwnd ) {
         local _Critical := Critical( "On" )
 
-        if ( ! WinSock.Descriptors.Has( wParam ) || msg != WinSock.WM_NUMBER || hwnd != A_ScriptHwnd ) {
+        if ( ! hwnd || ! WinSock.Descriptors.Has( wParam ) || msg != WinSock.WM_NUMBER ) {
             return
         }
+
+        local Callback := WinSock.Descriptors[ wParam ].Callback
 
         if ( lParam & WinSock.FD_ACCEPT ) {
             local Socket := DllCall( "Ws2_32\accept", "UInt", wParam, "Ptr", 0, "Ptr", 0 )
@@ -136,10 +136,12 @@ class WinSock {
             }
 
             WinSock.Notify( Socket, WinSock.FD_READ | WinSock.FD_CLOSE )
-            WinSock.Descriptors[ wParam ].OnAccept.Call( WinSock( Socket ) )
-        } else if ( lParam & WinSock.FD_READ ) {
-            WinSock.Descriptors[ wParam ].OnReceive.Call( WinSock( wParam ) )
+            WinSock( Socket, Callback )
+
+            wParam := Socket
         }
+
+        Callback.Call( WinSock.Descriptors[ wParam ] )
 
         Critical( _Critical )
     }
