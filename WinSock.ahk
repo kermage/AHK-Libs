@@ -128,7 +128,7 @@ class WinSock {
 
         local Callback := WinSock.Descriptors[ wParam ].Callback
 
-        if ( lParam & WinSock.FD_ACCEPT ) {
+        if ( EventName( lParam ) == "Accept" ) {
             local Socket := DllCall( "Ws2_32\accept", "UInt", wParam, "Ptr", 0, "Ptr", 0 )
 
             if ( Socket == -1 ) {
@@ -141,9 +141,26 @@ class WinSock {
             wParam := Socket
         }
 
-        Callback.Call( WinSock.Descriptors[ wParam ] )
+        Callback.Call( WinSock.Descriptors[ wParam ], EventName( lParam ) )
 
         Critical( _Critical )
+
+        EventName( _Value ) {
+            static Names := {
+                1: "Read",
+                2: "Write",
+                4: "OOB",
+                8: "Accept",
+                16: "Connect",
+                32: "Close",
+                64: "QOS",
+                128: "GroupQOS",
+                256: "RoutingInterfaceChange",
+                512: "AddressListChange",
+            }
+
+            return Names.HasProp( _Value ) ? Names.%_Value% : _Value
+        }
     }
 
     Send( _Value, _Encoding := "UTF-8" ) {
