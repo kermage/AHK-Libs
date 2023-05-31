@@ -120,8 +120,6 @@ class WinSock {
     }
 
     static WM_USER( wParam, lParam, msg, hwnd ) {
-        local _Critical := Critical( "On" )
-
         if ( ! hwnd || ! WinSock.Descriptors.Has( wParam ) || msg != WinSock.WM_NUMBER ) {
             return
         }
@@ -147,8 +145,6 @@ class WinSock {
             WinSock.Notify( wParam, 0 )
             WinSock.Descriptors[ wParam ].Close()
         }
-
-        Critical( _Critical )
 
         EventName( _Value ) {
             static Names := {
