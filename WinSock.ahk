@@ -135,13 +135,18 @@ class WinSock {
                 throw Error( "accept() returned invalid descriptor", -1, WinSock.LastError() )
             }
 
-            WinSock.Notify( Socket, WinSock.FD_READ | WinSock.FD_CLOSE )
+            WinSock.Notify( Socket, WinSock.FD_READ | WinSock.FD_WRITE | WinSock.FD_CLOSE )
             WinSock( Socket, Callback )
 
             wParam := Socket
         }
 
         Callback.Call( WinSock.Descriptors[ wParam ], EventName( lParam ) )
+
+        if ( EventName( lParam ) == "Close" && WinSock.Descriptors.Has( wParam ) ) {
+            WinSock.Notify( wParam, 0 )
+            WinSock.Descriptors[ wParam ].Close()
+        }
 
         Critical( _Critical )
 
@@ -159,7 +164,7 @@ class WinSock {
                 512: "AddressListChange",
             }
 
-            return Names.HasProp( _Value ) ? Names.%_Value% : _Value
+            return Names.HasProp( _Value ) ? Names.%_Value & 0xFFFF% : ( _Value >> 16 ) & 0xFFFF
         }
     }
 
