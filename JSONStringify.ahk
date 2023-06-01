@@ -20,6 +20,10 @@ JSONStringify( _Data ) {
         return Quote . _Value . Quote
     }
 
+    if ( ComObjType( _Data ) ) {
+        return ""
+    }
+
     if ( IsObject( _Data ) ) {
         local isArray := Type( _Data ) == "Array"
         local output := ""

@@ -41,4 +41,5 @@ Test( "Comparable",
     ( expect ) => expect( MapValue ).ToContainEqual( Map( "bottom", 2 ) ),
     ( expect ) => expect( Comparable( 1 ) ).ToBe( Comparable( 1 ) ),
     ( expect ) => expect( Comparable( 1 ) ).ToEqual( Comparable( 1 ) ),
+    ( expect ) => expect( Comparable( ComObject( "HTMLFile" ) ), "ComObject(HTMLFile)" ).ToBeEnumerable(),
 )

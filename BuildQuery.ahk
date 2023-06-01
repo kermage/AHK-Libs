@@ -19,6 +19,10 @@ BuildQuery( _Data ) {
 
     local output := ""
 
+    if ( ComObjType( _Data ) ) {
+        return output
+    }
+
     if ( IsObject( _Data ) ) {
         local isArray := Type( _Data ) == "Array"
 

@@ -79,7 +79,7 @@ class Comparable
     }
 
     IsEnumerable() {
-        return this.Value.HasProp( "__Enum" )
+        return ! ComObjType( this.Value ) && this.Value.HasProp( "__Enum" )
     }
 
     IsAssociative() {

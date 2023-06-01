@@ -41,4 +41,5 @@ Test( "JSONStringify",
     ( expect ) => expect( JSONStringify( MapValue ) ).ToHave( 2 ),
     ( expect ) => expect( JSONStringify( MapValue ) ).ToHave( "special" ),
     ( expect ) => expect( JSONStringify( MapValue ) ).ToHave( 1 ),
+    ( expect ) => expect( JSONStringify( ComObject( "HTMLFile" ) ), "ComObject(HTMLFile)" ).ToBe( "" ),
 )
