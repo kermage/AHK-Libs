@@ -20,13 +20,13 @@ BuildQuery( _Data ) {
     local output := ""
 
     if ( IsObject( _Data ) ) {
-        local dType := Type( _Data )
+        local isArray := Type( _Data ) == "Array"
 
         local key, value
 
-        for key, value in ( dType == "Array" || dType == "Map" || dType == "Enumerator" ) ? _Data : _Data.OwnProps() {
-            output .= Encode( dType == "Array" ? ( key - 1 ) : key ) . "=" ; key
-            output .= Encode( value ) . "&"                                ; value
+        for key, value in _Data.HasProp( "__Enum" ) ? _Data : _Data.OwnProps() {
+            output .= Encode( isArray ? ( key - 1 ) : key ) . "=" ; key
+            output .= Encode( value ) . "&"                       ; value
         }
 
         output := RTrim( output, "&" )

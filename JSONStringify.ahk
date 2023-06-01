@@ -21,19 +21,19 @@ JSONStringify( _Data ) {
     }
 
     if ( IsObject( _Data ) ) {
-        local dType := Type( _Data )
+        local isArray := Type( _Data ) == "Array"
         local output := ""
 
         local key, value
 
-        for key, value in ( dType == "Array" || dType == "Map" || dType == "Enumerator" ) ? _Data : _Data.OwnProps() {
-            output .= dType == "Array" ? "" : ( Escape( key ) . ":" ) ; key
-            output .= JSONStringify( value ) . ","                    ; value
+        for key, value in _Data.HasProp( "__Enum" ) ? _Data : _Data.OwnProps() {
+            output .= isArray  ? "" : ( Escape( key ) . ":" ) ; key
+            output .= JSONStringify( value ) . ","            ; value
         }
 
         output := RTrim( output, "," )
 
-        return ( dType == "Array" ? "[" output "]" : "{" output "}" )
+        return ( isArray  ? "[" output "]" : "{" output "}" )
     } else if ( IsNumber( _Data ) ) {
         return _Data
     }

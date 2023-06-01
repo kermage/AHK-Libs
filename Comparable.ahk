@@ -79,7 +79,7 @@ class Comparable
     }
 
     IsEnumerable() {
-        return this.IsArray() || this.IsMap()
+        return this.Value.HasProp( "__Enum" )
     }
 
     IsAssociative() {
