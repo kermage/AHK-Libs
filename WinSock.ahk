@@ -76,15 +76,15 @@ class WinSock {
     Handle( _Action, _Host, _Port ) {
         local sockaddr := DataType( {
             a_sa_family: "short",
-            b_sa_data: "16 char",
+            b_sa_data: "14 char",
         } )
         local ADDRINFOW := DataType( {
             a_ai_flags: "int",
             b_ai_family: "int",
             c_ai_sockettype: "int",
             d_ai_protocol: "int",
-            e_ai_addrlen: A_Is64bitOS ? "__int64" : "unsigned long",
-            ; f_ai_canonname: "wchar_t",
+            e_ai_addrlen: A_PtrSize,
+            f_ai_canonname: A_PtrSize,
             g_ai_addr: sockaddr.Size,
         } )
         local Data := 0
