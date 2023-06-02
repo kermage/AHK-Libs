@@ -8,7 +8,23 @@ Function:
 #Include <ParseURL>
 
 class WebSock {
-    __New( _URL ) {
+    __New( _Callback, _Size := 4096 ) {
+        this.Callback := _Callback
+        this.Data := Buffer( _Size, 0 )
+
+        this.Session := DllCall( "Winhttp\WinHttpOpen", "Ptr", 0, "UInt", 0, "Ptr", 0, "Ptr", 0, "UInt", 0x10000000 ) ; WINHTTP_FLAG_ASYNC
+
+        if ( ! this.Session ) {
+            throw Error( "WinHttpOpen() returned invalid session handle", -1, A_LastError )
+        }
+
+        if ( ! DllCall( "Winhttp\WinHttpSetTimeouts", "Ptr", this.Session, "Int", 60, "Int", 30, "Int", 15, "Int", 15 ) ) {
+            throw Error( "WinHttpSetTimeouts() errored out", -1, A_LastError )
+        }
+    }
+
+
+    Connect( _Url ) {
         local ParsedURL := ParseURL( _URL )
 
         if ( ! ParsedURL.HOST ) {
@@ -17,12 +33,6 @@ class WebSock {
 
         if ( ! ParsedURL.PORT ) {
             ParsedURL.PORT := ParsedURL.SCHEME == "wss" ? 443 : 80
-        }
-
-        this.Session := DllCall( "Winhttp\WinHttpOpen", "Ptr", 0, "UInt", 0, "Ptr", 0, "Ptr", 0, "UInt", 0 )
-
-        if ( ! this.Session ) {
-            throw Error( "WinHttpOpen() returned invalid session handle", -1, A_LastError )
         }
 
         local hConnect := DllCall( "Winhttp\WinHttpConnect", "Ptr", this.Session, "WStr", ParsedURL.HOST, "UInt", ParsedURL.PORT, "UInt", 0 )
@@ -71,7 +81,23 @@ class WebSock {
         WebSock.Close( hConnect )
         WebSock.Close( this.Session )
 
-        this.Socket := hSocket
+        this.Handle := hSocket
+        local dwOption := Buffer( A_PtrSize )
+
+        NumPut( "UPtr", ObjPtrAddRef( this ), dwOption )
+
+        if ( ! DllCall( "Winhttp\WinHttpSetOption", "Ptr", hSocket, "UInt", 45, "Ptr", dwOption, "UInt", dwOption.Size ) ) { ; WINHTTP_OPTION_CONTEXT_VALUE
+            throw Error( "WinHttpSetOption() errored out", -1, A_LastError )
+        }
+
+        local callback := CallbackCreate( this.Async, "", 5 )
+
+		if ( DllCall( "Winhttp\WinHttpSetStatusCallback", "Ptr", hSocket, "Ptr", callback, "UInt", 0x00080000, "Ptr", 0 ) == -1 ) { ; WINHTTP_CALLBACK_STATUS_READ_COMPLETE
+            throw Error( "WinHttpSetStatusCallback() errored out", -1, A_LastError )
+        }
+
+        this.Event( "Open" )
+        SetTimer( () => DllCall( "Winhttp\WinHttpWebSocketReceive", "Ptr", this.Handle, "Ptr", this.Data, "UInt", this.Data.Size, "Ptr", 0, "Ptr", 0 ), -1 )
     }
 
     __Delete() {
@@ -83,26 +109,17 @@ class WebSock {
         local Data := Buffer( StrPut( _Value, "UTF-8" ), 0 )
         local Length := StrPut( _Value, Data, "UTF-8" )
 
-        if ( DllCall( "Winhttp\WinHttpWebSocketSend", "Ptr", this.Socket, "UInt", 2, "Ptr", Data, "UInt", Length ) ) { ; WINHTTP_WEB_SOCKET_UTF8_MESSAGE_BUFFER_TYPE
-            throw Error( "Unsuccessful send()", -1, A_LastError )
+        local Result := DllCall( "Winhttp\WinHttpWebSocketSend", "Ptr", this.Handle, "UInt", 2, "Ptr", Data, "UInt", Length ) ; WINHTTP_WEB_SOCKET_UTF8_MESSAGE_BUFFER_TYPE
+
+        if ( Result && Result != 4317 ) { ; ERROR_INVALID_OPERATION
+            this.Event( "Error", Result )
         }
-    }
-
-    Receive( _Length := 4096 ) {
-        local Data := Buffer( _Length, 0 )
-        local bytesRead := 0
-        local bufferType := 0
-        local Result := DllCall( "Winhttp\WinHttpWebSocketReceive", "Ptr", this.Socket, "Ptr", Data, "UInt", _Length, "UInt*", &bytesRead, "UInt*", &bufferType )
-
-        if ( Result ) {
-            throw Error( "Unsuccessful receive()", -1, A_LastError )
-        }
-
-        return StrGet( Data, bytesRead, "UTF-8" )
     }
 
     Close() {
-        WebSock.Close( this.Socket )
+        DllCall( "Winhttp\WinHttpWebSocketShutdown", "Ptr", this.Handle, "UShort", 1000, "Ptr", 0, "UInt", 0 )
+        DllCall( "Winhttp\WinHttpWebSocketClose", "Ptr", this.Handle, "UShort", 1000, "Ptr", 0, "UInt", 0 )
+        WebSock.Close( this.Handle )
     }
 
 
@@ -110,5 +127,44 @@ class WebSock {
         if ( ! DllCall( "Winhttp\WinHttpCloseHandle", "Ptr", _Socket ) ) {
             throw Error( "Unsuccessful close()", -1, A_LastError )
         }
+    }
+
+
+    Async( hSession, nFlag, sInfo, infoLen ) {
+        if ( nFlag != 524288 ) { ; WINHTTP_CALLBACK_STATUS_READ_COMPLETE
+            return
+        }
+
+        local Socket := ObjFromPtrAddRef( hSession )
+        local BytesRead := NumGet( sInfo, 0, "UInt" )
+        local BufferType := NumGet( sInfo, 4, "UInt" )
+
+        if ( BufferType == 4 ) { ; WINHTTP_WEB_SOCKET_CLOSE_BUFFER_TYPE
+            local Reason := Buffer( 123 ) ; WINHTTP_WEB_SOCKET_MAX_CLOSE_REASON_LENGTH
+            local Status := 0
+            local Length := 0
+
+            DllCall( "Winhttp\WinHttpWebSocketQueryCloseStatus", "Ptr", Socket.Handle, "UShort*", &Status, "Ptr", Reason, "UInt", Reason.Size, "UInt*", &Length )
+
+            Socket.Event( "Close", {
+                code: Status,
+                reason: StrGet( Reason, Length, "UTF-8" ),
+            } )
+        } else  {
+            Socket.Event( "Message", StrGet( Socket.Data, BytesRead, "UTF-8" ) )
+            SetTimer( () => DllCall( "Winhttp\WinHttpWebSocketReceive", "Ptr", Socket.Handle, "Ptr", Socket.Data, "UInt", Socket.Data.Size, "Ptr", 0, "Ptr", 0 ), -1 )
+        }
+    }
+
+    Event( _Type, _Data := "" ) {
+        static UnixStart := 116444736000000000
+        local FileTime := 0
+
+        DllCall( "GetSystemTimeAsFileTime", "Int64P", &FileTime )
+        SetTimer( () => this.Callback.Call( this, {
+            type: _Type,
+            data: _Data,
+            timestamp: ( FileTime - UnixStart ) // 10000000,
+        } ), -1 )
     }
 }
