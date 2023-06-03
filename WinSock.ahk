@@ -44,7 +44,7 @@ class WinSock {
             throw Error( "WSAStartup() errored out", -1, Result )
         }
 
-        if ( NumGet( lpWSAData, lpWSAData.Offset( "bVersion" ), "UShort" ) < 0x0202 ) {
+        if ( NumGet( lpWSAData.Address( "aVersion" ), "UShort" ) < 0x0202 ) {
             throw Error( "WinSock version 2.2 is not available", -1 )
         }
 
@@ -178,13 +178,13 @@ class WinSock {
     }
 
 	ToRead() {
-        local Data := Buffer( 4 )
+        local Data := 0
 
-		if ( DllCall( "Ws2_32\ioctlsocket", "UInt", this.Descriptor, "Int", 0x4004667F, "Ptr", Data ) == -1 ) { ; FIONREAD
+		if ( DllCall( "Ws2_32\ioctlsocket", "UInt", this.Descriptor, "Int", 0x4004667F, "UInt*", &Data ) == -1 ) { ; FIONREAD
             throw Error( "Unsuccessful ioctlsocket()", -1, WinSock.LastError() )
         }
 
-		return NumGet( Data, 0, "Int" )
+		return Data
 	}
 
     Receive( _Length := 0, _Encoding := "UTF-8" ) {

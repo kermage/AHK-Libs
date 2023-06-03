@@ -131,4 +131,16 @@ class DataType extends Buffer {
 
         return offset
     }
+
+    Address( _Field := "" ) {
+        if ( _Field == "" ) {
+            return this.Ptr
+        }
+
+        if ( ! this.Size[ _Field ] ) {
+            return 0
+        }
+
+        return this.Ptr + this.Offset( _Field )
+    }
 }
