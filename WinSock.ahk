@@ -8,12 +8,11 @@ Function:
 #Include <DataType>
 
 class WinSock {
-    static WM_NUMBER := 0x400
+    static WM_NUMBER := 0x800
     static FD_READ := 1
     static FD_WRITE := 2
     static FD_ACCEPT := 8
     static FD_CLOSE := 32
-    static FIONREAD := 0x4004667F
     static Descriptors := Map()
 
 
@@ -21,7 +20,7 @@ class WinSock {
         this.Descriptor := _Socket
         this.Callback := _Callback
 
-        WinSock.Descriptors[ _Socket ] := this
+        WinSock.Descriptors[ _Socket ] := ObjPtrAddRef( this )
     }
 
     __Delete() {
@@ -31,23 +30,26 @@ class WinSock {
     }
 
 
-    static __New( _VersionRequired := 0x0202 ) {
+    static __New() {
+        DllCall( "LoadLibraryW", "WStr", "Ws2_32" )
+
         local WSADATA := DataType( {
             aVersion: "unsigned short",
             bHighVersion: "unsigned short",
             clpVendorInfo: "char",
         } )
         local lpWSAData := Buffer( WSADATA.Size )
-        local Result := DllCall( "Ws2_32\WSAStartup", "UShort", _VersionRequired, "Ptr", lpWSAData )
+        local Result := DllCall( "Ws2_32\WSAStartup", "UShort", 0x0202, "Ptr", lpWSAData )
 
         if ( Result ) {
             throw Error( "WSAStartup() errored out", -1, Result )
         }
 
-        if ( NumGet( lpWSAData, WSADATA.Offset( "bVersion" ), "UShort" ) < _VersionRequired ) {
-
-            throw Error( Format( "WinSock version {1} is not available", _VersionRequired ), -1 )
+        if ( NumGet( lpWSAData, WSADATA.Offset( "bVersion" ), "UShort" ) < 0x0202 ) {
+            throw Error( "WinSock version 2.2 is not available", -1 )
         }
+
+        WinSock.WM_NUMBER := DllCall( "RegisterWindowMessage", "Str", "WINSOCK_" A_ScriptHwnd, "UInt" )
 
         OnMessage( WinSock.WM_NUMBER, ObjBindMethod( this, "WM_USER" ) )
     }
@@ -111,6 +113,8 @@ class WinSock {
         }
 
         WinSock.Notify( this.Descriptor, WinSock.FD_ACCEPT | WinSock.FD_CLOSE )
+
+        this.Connections := Array()
     }
 
     Connect( _Host, _Port ) {
@@ -119,34 +123,35 @@ class WinSock {
         WinSock.Notify( this.Descriptor, WinSock.FD_READ | WinSock.FD_CLOSE )
     }
 
+
     static WM_USER( wParam, lParam, msg, hwnd ) {
-        if ( ! hwnd || ! WinSock.Descriptors.Has( wParam ) || msg != WinSock.WM_NUMBER ) {
+        if ( ! hwnd || ! WinSock.Descriptors.Has( wParam ) || msg != WinSock.WM_NUMBER || hwnd != A_ScriptHwnd ) {
             return
         }
 
-        local Callback := WinSock.Descriptors[ wParam ].Callback
+        local Socket := ObjFromPtrAddRef( WinSock.Descriptors[ wParam ] )
 
         if ( EventName( lParam ) == "Accept" ) {
-            local Socket := DllCall( "Ws2_32\accept", "UInt", wParam, "Ptr", 0, "Ptr", 0 )
+            local Descriptor := DllCall( "Ws2_32\accept", "UInt", wParam, "Ptr", 0, "Ptr", 0 )
 
-            if ( Socket == -1 ) {
+            if ( Descriptor == -1 ) {
                 throw Error( "accept() returned invalid descriptor", -1, WinSock.LastError() )
             }
 
-            WinSock.Notify( Socket, WinSock.FD_READ | WinSock.FD_WRITE | WinSock.FD_CLOSE )
-            WinSock( Socket, Callback )
+            WinSock.Notify( Descriptor, WinSock.FD_READ | WinSock.FD_WRITE | WinSock.FD_CLOSE )
 
-            wParam := Socket
-        }
-
-        Callback.Call( WinSock.Descriptors[ wParam ], EventName( lParam ) )
-
-        if ( EventName( lParam ) == "Close" && WinSock.Descriptors.Has( wParam ) ) {
+            Socket.Connections.Push( Descriptor )
+            Socket := WinSock( Descriptor, Socket.Callback )
+        } else if ( EventName( lParam ) == "Close" ) { ; WSAECONNABORTED
             WinSock.Notify( wParam, 0 )
-            WinSock.Descriptors[ wParam ].Close()
+            Socket.Close()
         }
+
+        SetTimer( () => Socket.Callback.Call( Socket, EventName( lParam ) ), -1 )
 
         EventName( _Value ) {
+            _Value &= 0xFFFF
+
             static Names := {
                 1: "Read",
                 2: "Write",
@@ -160,9 +165,10 @@ class WinSock {
                 512: "AddressListChange",
             }
 
-            return Names.HasProp( _Value ) ? Names.%_Value & 0xFFFF% : ( _Value >> 16 ) & 0xFFFF
+            return Names.HasProp( _Value ) ? Names.%_Value% : _Value >> 16
         }
     }
+
 
     Send( _Value, _Encoding := "UTF-8" ) {
         local Data := Buffer( StrPut( _Value, _Encoding ) )
@@ -177,7 +183,7 @@ class WinSock {
 	ToRead() {
         local Data := Buffer( 4 )
 
-		if ( DllCall( "Ws2_32\ioctlsocket", "UInt", this.Descriptor, "Int", WinSock.FIONREAD, "Ptr", Data ) == -1 ) {
+		if ( DllCall( "Ws2_32\ioctlsocket", "UInt", this.Descriptor, "Int", 0x4004667F, "Ptr", Data ) == -1 ) { ; FIONREAD
             throw Error( "Unsuccessful ioctlsocket()", -1, WinSock.LastError() )
         }
 
@@ -208,6 +214,21 @@ class WinSock {
             throw Error( "Unsuccessful closesocket()", -1, WinSock.LastError() )
         }
 
+        if ( this.HasOwnProp( "Connections" ) ) {
+            while ( this.Connections.Length ) {
+                local Descriptor := this.Connections.Pop()
+
+                if ( ! WinSock.Descriptors.Has( Descriptor ) ) {
+                    continue
+                }
+
+                local Socket := ObjFromPtrAddRef( WinSock.Descriptors[ Descriptor ] )
+
+                Socket.Close()
+            }
+        }
+
+        ObjRelease( WinSock.Descriptors[ this.Descriptor ] )
         WinSock.Descriptors.Delete( this.Descriptor )
     }
 }
