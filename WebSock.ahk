@@ -24,11 +24,15 @@ class WebSock {
     }
 
 
-    Connect( _Url ) {
+    Connect( _Url, _Headers := {} ) {
         local ParsedURL := ParseURL( _URL )
 
         if ( ! ParsedURL.HOST ) {
             throw Error( "Supplied URL is invalid", -1 )
+        }
+
+        if ( ! IsObject( _Headers ) || ComObjType( _Headers ) ) {
+            throw Error( "Supplied Headers is invalid", -1 )
         }
 
         if ( ! ParsedURL.PORT ) {
@@ -45,6 +49,18 @@ class WebSock {
 
         if ( ! hRequest ) {
             throw Error( "WinHttpOpenRequest() returned invalid request handle", -1, A_LastError )
+        }
+
+        local key, value, headers := ""
+
+        for key, value in ( _Headers.HasProp( "__Enum" ) ? _Headers : _Headers.OwnProps() ) {
+            headers .= key ": " value "`r`n"
+        }
+
+        if ( headers ) {
+            if ( ! DllCall( "Winhttp\WinHttpAddRequestHeaders", "Ptr", hRequest, "WStr", headers, "UInt", -1, "UInt", 0x20000000 ) ) { ; WINHTTP_ADDREQ_FLAG_ADD
+                throw Error( "WinHttpAddRequestHeaders() errored out", -1, A_LastError )
+            }
         }
 
         if ( ! DllCall( "Winhttp\WinHttpSetOption", "Ptr", hRequest, "UInt", 114, "Ptr", 0, "UInt", 0 ) ) { ; WINHTTP_OPTION_UPGRADE_TO_WEB_SOCKET
