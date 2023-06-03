@@ -6,7 +6,7 @@ Function:
 ---------------------------------------------------------------------------
 */
 
-class DataType {
+class DataType extends Buffer {
     ; standard
     static bool := 1
     static char := 1
@@ -68,7 +68,7 @@ class DataType {
     static unsigned_long_long_int := 8
 
 
-    __New( _Data ) {
+    __New( _Data, _Fill := 0 ) {
         Parse( _Value ) {
             if ( IsNumber( _Value ) ) {
                 return _Value
@@ -87,13 +87,14 @@ class DataType {
         }
 
         this.Data := Map()
-        this.Ptr := 0
 
         local index, value
 
         for index, value in _Data.OwnProps() {
             this.Data[ index ] := Parse( value )
         }
+
+        super.__New( this.Size, _Fill )
     }
 
 

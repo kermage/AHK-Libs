@@ -33,19 +33,18 @@ class WinSock {
     static __New() {
         DllCall( "LoadLibraryW", "WStr", "Ws2_32" )
 
-        local WSADATA := DataType( {
+        local lpWSAData := DataType( {
             aVersion: "unsigned short",
             bHighVersion: "unsigned short",
             clpVendorInfo: "char",
         } )
-        local lpWSAData := Buffer( WSADATA.Size )
         local Result := DllCall( "Ws2_32\WSAStartup", "UShort", 0x0202, "Ptr", lpWSAData )
 
         if ( Result ) {
             throw Error( "WSAStartup() errored out", -1, Result )
         }
 
-        if ( NumGet( lpWSAData, WSADATA.Offset( "bVersion" ), "UShort" ) < 0x0202 ) {
+        if ( NumGet( lpWSAData, lpWSAData.Offset( "bVersion" ), "UShort" ) < 0x0202 ) {
             throw Error( "WinSock version 2.2 is not available", -1 )
         }
 
@@ -96,13 +95,11 @@ class WinSock {
             throw Error( "GetAddrInfoW() errored out", -1, Result )
         }
 
-        ADDRINFOW.Ptr := Data
-
-        if ( DllCall( "Ws2_32\" _Action, "UInt", this.Descriptor, "Ptr", NumGet( ADDRINFOW, ADDRINFOW.Offset( "g_ai_addr" ), "UPtr" ), "UInt", NumGet( ADDRINFOW, ADDRINFOW.Offset( "e_ai_addrlen" ), "UPtr" ) ) ) {
+        if ( DllCall( "Ws2_32\" _Action, "UInt", this.Descriptor, "Ptr", NumGet( Data, ADDRINFOW.Offset( "g_ai_addr" ), "UPtr" ), "UInt", NumGet( Data, ADDRINFOW.Offset( "e_ai_addrlen" ), "UPtr" ) ) ) {
             throw Error( Format( "Unsuccessful socket {1}()", _Action ), -1, WinSock.LastError() )
         }
 
-        DllCall( "Ws2_32\FreeAddrInfoW", "Ptr", ADDRINFOW.Ptr )
+        DllCall( "Ws2_32\FreeAddrInfoW", "Ptr", Data )
     }
 
     Listen( _Host, _Port ) {
