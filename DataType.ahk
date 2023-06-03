@@ -115,7 +115,7 @@ class DataType extends Buffer {
     }
 
     Offset( _Field ) {
-        if ( ! this.Size[ _Field ] ) {
+        if ( ! this.Data.Has( _Field ) ) {
             return -1
         }
 
@@ -137,8 +137,8 @@ class DataType extends Buffer {
             return this.Ptr
         }
 
-        if ( ! this.Size[ _Field ] ) {
-            return 0
+        if ( ! this.Data.Has( _Field ) ) {
+            return -1
         }
 
         return this.Ptr + this.Offset( _Field )
