@@ -36,18 +36,26 @@ class PixelWindow {
     Search( _X1, _Y1, _X2, _Y2, _Color, _RGB := 0 ) {
         local X := _X1
 
-        Loop ( _X2 - _X1 ) {
+        Loop Abs( _X2 - _X1 ) {
             local Y := _Y1
 
-            Loop ( _Y2 - _Y1 ) {
+            Loop Abs( _Y2 - _Y1 ) {
                 if ( _Color == this.GetColor( X, Y, _RGB ) ) {
                     return { X: X, Y: Y }
                 }
 
-                Y++
+                if ( _Y2 > _Y1 ) {
+                    Y++
+                } else {
+                    Y--
+                }
             }
 
-            X++
+            if ( _X2 > _X1 ) {
+                X++
+            } else {
+                X--
+            }
         }
 
         return false
