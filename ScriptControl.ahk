@@ -10,7 +10,7 @@ class ScriptControl {
 
     __New( _PID ) {
         this.PID := _PID
-        this.cPID := WinGetPID( "ahk_id " A_ScriptHwnd )
+        this.cPID := DllCall( "GetCurrentProcessId" )
         ScriptControl.Handles[ A_ScriptHwnd ] := ""
     }
 
