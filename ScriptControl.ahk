@@ -9,13 +9,9 @@ class ScriptControl {
     static Handles := Map()
 
     __New( _PID ) {
-        local _DetectHiddenWindows := DetectHiddenWindows( true )
-
         this.PID := _PID
         this.cPID := WinGetPID( "ahk_id " A_ScriptHwnd )
         ScriptControl.Handles[ A_ScriptHwnd ] := ""
-
-        DetectHiddenWindows( _DetectHiddenWindows )
     }
 
 
@@ -57,7 +53,12 @@ class ScriptControl {
         NumPut( "UPtr", SizeBytes, CopyDataStruct, A_PtrSize )
         NumPut( "UPtr", StrPtr( _String ), CopyDataStruct, 2 * A_PtrSize )
 
-        return SendMessage( 0x004A, 0, CopyDataStruct,, "ahk_pid " _PID,,,, 0 )
+        local _DetectHiddenWindows := DetectHiddenWindows( true )
+        local Result := SendMessage( 0x004A, 0, CopyDataStruct,, "ahk_pid " _PID,,,, 0 )
+
+        DetectHiddenWindows( _DetectHiddenWindows )
+
+        return Result
     }
 
     static Receive( wParam, lParam, msg, hwnd ) {
