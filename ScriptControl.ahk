@@ -47,6 +47,10 @@ class ScriptControl {
     }
 
     static Send( _String, _PID ) {
+        if ( ! ProcessExist( _PID ) ) {
+            return 0
+        }
+
         local SizeBytes := ( StrLen( _String ) + 1 ) * 2
         local CopyDataStruct := Buffer( 3 * A_PtrSize + SizeBytes, 0 )
 
