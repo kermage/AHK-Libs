@@ -158,4 +158,13 @@ class Comparable
 
         return true
     }
+
+
+    ToHaveLength( _Expected ) {
+        return Comparable( _Expected ).Is( this.Length() )
+    }
+
+    Length() {
+        return this.IsMap() ? this.Value.Count : ( this.IsArray() ? this.Value.Length : ObjOwnPropCount( this.Value ) )
+    }
 }
