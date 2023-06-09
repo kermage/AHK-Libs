@@ -167,6 +167,18 @@ class Comparable
     }
 
     Length() {
-        return this.IsMap() ? this.Value.Count : ( this.IsArray() ? this.Value.Length : ObjOwnPropCount( this.Value ) )
+        if ( this.IsType( "String" ) ) {
+            return StrLen( this.Value )
+        }
+
+        if ( this.IsNumeric() ) {
+            return 1
+        }
+
+        if ( this.IsObject( false ) && ! ComObjType( this.Value ) ) {
+            return this.IsMap() ? this.Value.Count : ( this.IsArray() ? this.Value.Length : ObjOwnPropCount( this.Value ) )
+        }
+
+        return 0
     }
 }

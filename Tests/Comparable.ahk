@@ -45,4 +45,7 @@ Test( "Comparable",
     ( expect ) => expect( Comparable( 1 ) ).ToBe( Comparable( 1 ) ),
     ( expect ) => expect( Comparable( 1 ) ).ToEqual( Comparable( 1 ) ),
     ( expect ) => expect( Comparable( ComObject( "HTMLFile" ) ), "ComObject(HTMLFile)" ).ToBeEnumerable(),
+    ( expect ) => expect( Comparable( 123 ).Length(), "Number 123 Length" ).ToBe( 1 ),
+    ( expect ) => expect( Comparable( "123" ).Length(), "String 123 Length" ).ToBe( 3 ),
+    ( expect ) => expect( Comparable( ComObject( "HTMLFile" ) ).Length(), "ComObject Length" ).ToBe( 0 ),
 )
