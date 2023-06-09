@@ -126,6 +126,10 @@ class Comparable
         local expected := Comparable( _Expected )
 
         if ( this.IsObject( false ) ) {
+            if ( ! expected.IsObject( false ) || ! Comparable( this.Length() ).Is( expected.Length() ) ) {
+                return false
+            }
+
             return expected.ToContainEqual( this.Value )
         }
 
@@ -140,11 +144,9 @@ class Comparable
             return false
         }
 
-        local index, value
-        local props := expected.IsEnumerable() ? _Expected : _Expected.OwnProps()
-        local count := expected.IsMap() ? props.Count : ( expected.IsArray() ? props.Length : ObjOwnPropCount( expected ) )
+        local index, value, props := expected.IsEnumerable() ? _Expected : _Expected.OwnProps()
 
-        if ( ! count ) {
+        if ( expected.ToHaveLength( 0 ) ) {
             return false
         }
 
