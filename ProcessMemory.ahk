@@ -53,14 +53,18 @@ class ProcessMemory {
     }
 
     Pointer( _Base, _Offsets* ) {
-        local index, offset
+        local index, offset, _Type := "UInt"
 
         _Base += this.BaseAddress
+
+        if ( _Offsets.Length > 0 && Type( _Offsets.Get( _Offsets.Length ) ) == "String" ) {
+            _Type := _Offsets.Pop()
+        }
 
         for index, offset in _Offsets
             _Base := this.Read( _Base ) + offset
 
-        return this.Read( _Base )
+        return this.Read( _Base, _Type )
     }
 
     Trace( _Address, _Offsets* ) {
